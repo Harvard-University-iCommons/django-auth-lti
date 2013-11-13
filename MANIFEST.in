@@ -1,0 +1,4 @@
+include LICENSE
+recursive-include docs *
+recursive-include icommons_common *.py *.html
+recursive-include icommons_common/auth/gpg_home *

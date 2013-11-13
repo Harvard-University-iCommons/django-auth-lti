@@ -1,0 +1,5 @@
+*.pyc
+*.pyo
+build
+dist
+django_auth_lti.egg-info
