@@ -1,8 +1,6 @@
 from django.http import HttpResponse
 from django.contrib import auth
 
-from django.conf import settings
-
 #from django.contrib.auth.backends import RemoteUserBackend
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 #from django.utils.functional import SimpleLazyObject
@@ -11,7 +9,7 @@ from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
 from icommons_common.models import *
 
-
+import logging
 logger = logging.getLogger(__name__)
 
 
@@ -66,10 +64,6 @@ class LTIAuthMiddleware(object):
                 raise PermissionDenied()
 
 
-
-
-
-
     def clean_username(self, username, request):
         """
         Allows the backend to clean the username, if the backend defines a
@@ -81,7 +75,6 @@ class LTIAuthMiddleware(object):
             logger.debug('calling the backend %s clean_username with %s' % (backend,username))
             username = backend.clean_username(username)
             logger.debug('cleaned username is %s' % username)
-            #from pudb import set_trace; set_trace()
         except AttributeError:  # Backend has no clean_username method.
             pass
         return username

@@ -35,4 +35,5 @@ setup(
         "cx-Oracle==5.1.2",
         "django-filter==0.5.4"
     ],
+    zip_safe = False,
 )

@@ -1,4 +1,3 @@
-from os.path import abspath, dirname, join, normpath
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
@@ -6,14 +5,15 @@ from django.core.exceptions import PermissionDenied
 #from django.db.models import Q
 #from icommons_common.models import *
 from ims_lti_py.tool_provider import DjangoToolProvider
-
-import gnupg
-import base64
+from time import time
 import logging
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+from django.conf import settings
+
+# get credentials from config
+oauth_creds = settings.LTI_OAUTH_CREDENTIALS
 
 class LTIAuthBackend(ModelBackend):
     """
@@ -27,13 +27,12 @@ class LTIAuthBackend(ModelBackend):
     ``False``.
     """
 
-    # move this to config
-    oauth_creds = {'test': 'secret'}
-
     # Create a User object if not already in the database?
     create_unknown_user = True
 
     def authenticate(self, request):
+
+        logger.info("about to begin authentication process")
 
         request_key = request.POST.get('oauth_consumer_key', None)
 
@@ -49,13 +48,24 @@ class LTIAuthBackend(ModelBackend):
 
         tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
 
+        logger.info("about to check the signature")
+
         if not tool_provider.is_valid_request(request):
             logger.error("Invalid request: signature check failed.")
             raise PermissionDenied
 
+        logger.info("done checking the signature")
+
+        print tool_provider.oauth_timestamp
+
+        logger.info("about to check the timestamp: %d" % int(tool_provider.oauth_timestamp))
         if time() - int(tool_provider.oauth_timestamp) > 60*60:
             logger.error("OAuth timestamp is too old.")
-            raise PermissionDenied
+            #raise PermissionDenied
+        else:
+            logger.info("timestamp looks good")
+
+        logger.info("done checking the timestamp")
 
         # (this is where we should check the nonce)
 
@@ -64,8 +74,11 @@ class LTIAuthBackend(ModelBackend):
         user = None
 
         username = self.clean_username(request.POST.get('lis_person_sourcedid'))
-        
+        email = request.POST.get('lis_person_contact_email_primary')
+        first_name = request.POST.get('lis_person_name_given')
+        last_name = request.POST.get('lis_person_name_family')
 
+        logger.info("We have a valid username: %s" % username)
 
         #logger.debug('authenticate using original/cleaned username: %s/%s' % (authen_userid,username))
 
@@ -77,15 +90,14 @@ class LTIAuthBackend(ModelBackend):
         if self.create_unknown_user:
            
             user, created = UserModel.objects.get_or_create(**{
-                UserModel.USERNAME_FIELD: username
+                UserModel.USERNAME_FIELD: username,
             })
 
             if created:
                 logger.debug('authenticate created a new user for %s' % username)
-                user = self.configure_user(user)
             else:
-
                 logger.debug('authenticate found an existing user for %s' % username)    
+
         else:
             logger.debug('automatic new user creation is turned OFF! just try to find and existing record')
             try:
@@ -95,9 +107,15 @@ class LTIAuthBackend(ModelBackend):
                 # should return some kind of error here?
                 pass
 
-        logger.debug('before configuring user')
-        user = self.configure_user(user) 
-        logger.debug('after configuring user')      
+        # update the user   
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
+        logger.debug("updated the user record in the database")
 
         return user
 
+
+    def clean_username(self, username):
+        return username
