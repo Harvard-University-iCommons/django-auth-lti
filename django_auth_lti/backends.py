@@ -73,7 +73,12 @@ class LTIAuthBackend(ModelBackend):
 
         user = None
 
-        username = self.clean_username(request.POST.get('lis_person_sourcedid'))
+
+        if request.POST.get('lis_person_sourcedid'):
+            username = self.clean_username(request.POST.get('lis_person_sourcedid'))
+        else:
+            username = self.clean_username(request.POST.get('user_id'))
+
         email = request.POST.get('lis_person_contact_email_primary')
         first_name = request.POST.get('lis_person_name_given')
         last_name = request.POST.get('lis_person_name_family')
@@ -107,10 +112,13 @@ class LTIAuthBackend(ModelBackend):
                 # should return some kind of error here?
                 pass
 
-        # update the user   
-        user.email = email
-        user.first_name = first_name
-        user.last_name = last_name
+        # update the user
+        if email:   
+            user.email = email
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
         user.save()
         logger.debug("updated the user record in the database")
 
