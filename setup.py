@@ -32,8 +32,8 @@ setup(
     ],
     install_requires = [
         "Django>=1.6",
-        "cx-Oracle==5.1.2",
-        "django-filter==0.5.4"
+        "django-filter==0.7",
+        "ims-lti-py==0.6",
     ],
     zip_safe = False,
 )

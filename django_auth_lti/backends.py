@@ -2,8 +2,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
 
-#from django.db.models import Q
-#from icommons_common.models import *
 from ims_lti_py.tool_provider import DjangoToolProvider
 from time import time
 import logging
