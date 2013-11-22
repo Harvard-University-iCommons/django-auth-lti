@@ -1,13 +1,6 @@
-from django.http import HttpResponse
 from django.contrib import auth
 
-#from django.contrib.auth.backends import RemoteUserBackend
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-#from django.utils.functional import SimpleLazyObject
-#from django.shortcuts import redirect
-#from django.utils.http import urlquote
-
-from icommons_common.models import *
 
 import logging
 logger = logging.getLogger(__name__)
