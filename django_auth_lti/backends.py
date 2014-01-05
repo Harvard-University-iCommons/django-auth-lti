@@ -13,12 +13,9 @@ from django.conf import settings
 # get credentials from config
 oauth_creds = settings.LTI_OAUTH_CREDENTIALS
 
+
 class LTIAuthBackend(ModelBackend):
     """
-    This backend is to be used in conjunction with the ``PINAuthMiddleware``
-    found in the middleware module of this package, and is used when the server
-    is handling authentication outside of Django.
-
     By default, the ``authenticate`` method creates ``User`` objects for
     usernames that don't already exist in the database.  Subclasses can disable
     this behavior by setting the ``create_unknown_user`` attribute to
@@ -67,10 +64,9 @@ class LTIAuthBackend(ModelBackend):
 
         # (this is where we should check the nonce)
 
-        # if we got this far, the user is good 
+        # if we got this far, the user is good
 
         user = None
-
 
         if request.POST.get('lis_person_sourcedid'):
             username = self.clean_username(request.POST.get('lis_person_sourcedid'))
@@ -83,15 +79,12 @@ class LTIAuthBackend(ModelBackend):
 
         logger.info("We have a valid username: %s" % username)
 
-        #logger.debug('authenticate using original/cleaned username: %s/%s' % (authen_userid,username))
-
         UserModel = get_user_model()
 
         # Note that this could be accomplished in one try-except clause, but
         # instead we use get_or_create when creating unknown users since it has
         # built-in safeguards for multiple threads.
         if self.create_unknown_user:
-           
             user, created = UserModel.objects.get_or_create(**{
                 UserModel.USERNAME_FIELD: username,
             })
@@ -99,7 +92,7 @@ class LTIAuthBackend(ModelBackend):
             if created:
                 logger.debug('authenticate created a new user for %s' % username)
             else:
-                logger.debug('authenticate found an existing user for %s' % username)    
+                logger.debug('authenticate found an existing user for %s' % username)
 
         else:
             logger.debug('automatic new user creation is turned OFF! just try to find and existing record')
@@ -111,7 +104,7 @@ class LTIAuthBackend(ModelBackend):
                 pass
 
         # update the user
-        if email:   
+        if email:
             user.email = email
         if first_name:
             user.first_name = first_name
@@ -121,7 +114,6 @@ class LTIAuthBackend(ModelBackend):
         logger.debug("updated the user record in the database")
 
         return user
-
 
     def clean_username(self, username):
         return username

@@ -14,16 +14,15 @@ class LTIAuthMiddleware(object):
     authenticate the username and signature passed in the LTI launch post.
     If authentication is successful, the user is automatically logged in to
     persist the user in the session.
-
     """
 
     def process_request(self, request):
-        logger.debug('inside process_request %s' % request.path )
+        logger.debug('inside process_request %s' % request.path)
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):
             logger.debug('improperly configured: requeset has no user attr')
             raise ImproperlyConfigured(
-                "The Django PIN auth middleware requires the"
+                "The Django LTI auth middleware requires the"
                 " authentication middleware to be installed.  Edit your"
                 " MIDDLEWARE_CLASSES setting to insert"
                 " 'django.contrib.auth.middleware.AuthenticationMiddleware'"
@@ -31,15 +30,13 @@ class LTIAuthMiddleware(object):
 
         # if the user is already authenticated, just return
         if request.user.is_authenticated():
-            # nothing more to do! 
+            # nothing more to do!
             logger.debug('inside process_request: user is already authenticated: %s' % request.user)
             return
 
         else:
             # the request.user isn't authenticated!
             logger.debug('the request.user is not authenticated')
-            #from pudb import set_trace; set_trace()
-
 
             # authenticate and log the user in
             user = auth.authenticate(request=request)
@@ -56,7 +53,6 @@ class LTIAuthMiddleware(object):
                 #return HttpResponse('Authentication error! Sorry!')
                 raise PermissionDenied()
 
-
     def clean_username(self, username, request):
         """
         Allows the backend to clean the username, if the backend defines a
@@ -65,7 +61,7 @@ class LTIAuthMiddleware(object):
         backend_str = request.session[auth.BACKEND_SESSION_KEY]
         backend = auth.load_backend(backend_str)
         try:
-            logger.debug('calling the backend %s clean_username with %s' % (backend,username))
+            logger.debug('calling the backend %s clean_username with %s' % (backend, username))
             username = backend.clean_username(username)
             logger.debug('cleaned username is %s' % username)
         except AttributeError:  # Backend has no clean_username method.
