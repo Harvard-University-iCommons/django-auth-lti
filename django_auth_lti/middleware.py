@@ -51,7 +51,7 @@ class LTIAuthMiddleware(object):
                 # User could not be authenticated! Bail!
                 logger.error('user could not be authenticated; bail with an error message')
                 #return HttpResponse('Authentication error! Sorry!')
-                raise PermissionDenied()
+                #raise PermissionDenied()
 
     def clean_username(self, username, request):
         """

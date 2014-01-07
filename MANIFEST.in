@@ -1,3 +1,2 @@
 include LICENSE
-recursive-include docs *
 recursive-include django_auth_lti *.py *.html
