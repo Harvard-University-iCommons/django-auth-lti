@@ -49,7 +49,7 @@ class LTIAuthMiddleware(object):
                 auth.login(request, user)
             else:
                 # User could not be authenticated! Bail!
-                logger.error('user could not be authenticated; bail with an error message')
+                logger.error('user could not be authenticated; let the request continue in case another auth plugin is configured')
                 #return HttpResponse('Authentication error! Sorry!')
                 #raise PermissionDenied()
 

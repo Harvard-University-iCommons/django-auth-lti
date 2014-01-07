@@ -33,7 +33,6 @@ class LTIAuthBackend(ModelBackend):
 
         if request_key is None:
             logger.error("Request doesn't contain an oauth_consumer_key; can't continue.")
-            #raise PermissionDenied
             return None
 
         secret = oauth_creds.get(request_key, None)
