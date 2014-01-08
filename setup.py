@@ -14,7 +14,7 @@ setup(
     include_package_data=True,
     license='TBD License',  # example license
     description='A simple Django app containing LTI auth middleware and backend.',
-    long_descriptio=README,
+    long_description=README,
     url='http://icommons.harvard.edu/',
     author='Colin Murtaugh',
     author_email='colin_murtaugh@harvard.edu',
