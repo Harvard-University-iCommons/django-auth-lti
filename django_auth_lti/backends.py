@@ -82,6 +82,8 @@ class LTIAuthBackend(ModelBackend):
 
         if request.POST.get('lis_person_sourcedid'):
             username = self.clean_username(request.POST.get('lis_person_sourcedid'))
+        elif request.POST.get('custom_canvas_user_login_id'):
+            username = self.clean_username(request.POST.get('custom_canvas_user_login_id'))
         else:
             username = self.clean_username(request.POST.get('user_id'))
 
