@@ -41,6 +41,7 @@ class LTIAuthBackend(ModelBackend):
             logger.error("Could not get a secret for key %s" % request_key)
             raise PermissionDenied
 
+        logger.debug('using key/secret %s/%s' % (request_key, secret))
         tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
 
         postparams = request.POST.dict()
@@ -50,7 +51,7 @@ class LTIAuthBackend(ModelBackend):
 
         logger.debug('request abs url is %s' % request.build_absolute_uri())
         logger.debug('request META is %s') % request.META
-        
+
         logger.info("about to check the signature")
 
         if not tool_provider.is_valid_request(request):
