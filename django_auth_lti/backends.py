@@ -46,6 +46,7 @@ class LTIAuthBackend(ModelBackend):
 
         postparams = request.POST.dict()
 
+        logger.debug('request is secure: %s' % request.is_secure())
         for key in postparams:
             logger.debug('POST %s: %s' % (key, postparams.get(key)))
 
