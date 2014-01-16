@@ -43,6 +43,11 @@ class LTIAuthBackend(ModelBackend):
 
         tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
 
+        postparams = request.POST.dict()
+
+        for key in postparams:
+            logger.debug('%s: %s' % (key, postparams.get(key)))
+
         logger.info("about to check the signature")
 
         if not tool_provider.is_valid_request(request):
