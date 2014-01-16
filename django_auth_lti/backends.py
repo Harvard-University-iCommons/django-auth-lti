@@ -51,8 +51,10 @@ class LTIAuthBackend(ModelBackend):
             logger.debug('POST %s: %s' % (key, postparams.get(key)))
 
         logger.debug('request abs url is %s' % request.build_absolute_uri())
-        for key in request.META:
-            logger.debug('META %s: %s') % (key, request.META.get(key))
+
+        metaparams = request.META.dict()
+        for key in metaparams:
+            logger.debug('META %s: %s') % (key, metaparams.get(key))
 
         logger.info("about to check the signature")
 
