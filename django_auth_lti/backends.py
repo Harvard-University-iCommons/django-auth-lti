@@ -48,6 +48,9 @@ class LTIAuthBackend(ModelBackend):
         for key in postparams:
             logger.debug('%s: %s' % (key, postparams.get(key)))
 
+        logger.debug('request abs url is %s' % request.build_absolute_uri())
+        logger.debug('request META is %s') % request.META
+        
         logger.info("about to check the signature")
 
         if not tool_provider.is_valid_request(request):
