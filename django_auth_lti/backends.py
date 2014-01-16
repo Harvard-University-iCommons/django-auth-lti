@@ -53,7 +53,7 @@ class LTIAuthBackend(ModelBackend):
         logger.debug('request abs url is %s' % request.build_absolute_uri())
 
         for key in request.META:
-            logger.debug('META %s: %s'% (key, request.META.get(key))
+            logger.debug('META %s: %s' % (key, request.META.get(key)))
 
         logger.info("about to check the signature")
 
@@ -66,7 +66,7 @@ class LTIAuthBackend(ModelBackend):
         print tool_provider.oauth_timestamp
 
         logger.info("about to check the timestamp: %d" % int(tool_provider.oauth_timestamp))
-        if time() - int(tool_provider.oauth_timestamp) > 60*60:
+        if time() - int(tool_provider.oauth_timestamp) > 60 * 60:
             logger.error("OAuth timestamp is too old.")
             #raise PermissionDenied
         else:
