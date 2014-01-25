@@ -41,7 +41,7 @@ class LTIAuthMiddleware(object):
             # authenticate and log the user in
             user = auth.authenticate(request=request)
 
-            if user:
+            if user is not None:
                 # User is valid.  Set request.user and persist user in the session
                 # by logging the user in.
                 logger.debug('user was successfully authenticated; now log them in')
