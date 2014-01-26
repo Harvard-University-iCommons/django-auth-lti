@@ -127,6 +127,17 @@ class LTIAuthBackend(ModelBackend):
         user.save()
         logger.debug("updated the user record in the database")
 
+        # put values from the LTI launch post request into the session
+        if request.POST.get('roles'):
+            request.session['LTI_ROLES'] = request.POST.get('roles')
+        else:
+            request.session['LTI_ROLES'] = None
+
+        if request.POST.get('custom_canvas_account_id'):
+            request.session['LTI_CANVAS_ACCOUNT_ID'] = request.POST.get('custom_canvas_account_id')
+        else:
+            request.session['LTI_CANVAS_ACCOUNT_ID'] = None
+
         return user
 
     def clean_username(self, username):
