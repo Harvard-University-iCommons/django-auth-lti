@@ -2,6 +2,8 @@ from django.contrib import auth
 
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
+from timer import Timer
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,12 @@ class LTIAuthMiddleware(object):
                 " before the PINAuthMiddleware class.")
 
         # if the user is already authenticated, just return
-        if request.user.is_authenticated():
+        with Timer() as t:
+            is_auth = request.user.is_authenticated()
+
+        logger.debug('is_authenticated() took %s s' % t.secs)
+
+        if is_auth:
             # nothing more to do!
             logger.debug('inside process_request: user is already authenticated: %s' % request.user)
             return
@@ -39,14 +46,21 @@ class LTIAuthMiddleware(object):
             logger.debug('the request.user is not authenticated')
 
             # authenticate and log the user in
-            user = auth.authenticate(request=request)
+            with Timer() as t:
+                user = auth.authenticate(request=request)
+
+            logger.debug('authenticate() took %s s' % t.secs)
 
             if user is not None:
                 # User is valid.  Set request.user and persist user in the session
                 # by logging the user in.
                 logger.debug('user was successfully authenticated; now log them in')
                 request.user = user
-                auth.login(request, user)
+                with Timer() as t:
+                    auth.login(request, user)
+    
+                logger.debug('login() took %s s' % t.secs)
+
             else:
                 # User could not be authenticated! Bail!
                 logger.error('user could not be authenticated; let the request continue in case another auth plugin is configured')
