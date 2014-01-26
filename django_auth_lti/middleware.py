@@ -32,11 +32,11 @@ class LTIAuthMiddleware(object):
 
         # if the user is already authenticated, just return
         with Timer() as t:
-            user = request.user
-        logger.debug('getting request.user took %s s' % t.secs)
+            username = request.user.username
+        logger.debug('getting request.user.username took %s s' % t.secs)
 
         with Timer() as t:
-            is_auth = user.is_authenticated()
+            is_auth = request.user.is_authenticated()
 
         logger.debug('is_authenticated() took %s s' % t.secs)
 
