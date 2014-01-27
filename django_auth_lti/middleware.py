@@ -12,10 +12,12 @@ class LTIAuthMiddleware(object):
     """
     Middleware for authenticating users via an LTI launch URL.
 
-    If request.user is not authenticated, then this middleware attempts to
-    authenticate the username and signature passed in the LTI launch post.
+    If the request is an LTI launch request, then this middleware attempts to
+    authenticate the username and signature passed in the POST data.
     If authentication is successful, the user is automatically logged in to
     persist the user in the session.
+
+    If the request is not an LTI launch request, do nothing.
     """
 
     def process_request(self, request):
@@ -30,29 +32,13 @@ class LTIAuthMiddleware(object):
                 " 'django.contrib.auth.middleware.AuthenticationMiddleware'"
                 " before the PINAuthMiddleware class.")
 
-        # if the user is already authenticated, just return
-        with Timer() as t:
-            username = request.user.username
-        logger.debug('getting request.user.username took %s s' % t.secs)
+        if request.method == 'POST' and request.POST.get('lti_message_type') == 'basic-lti-launch-request':
 
-        with Timer() as t:
-            is_auth = request.user.is_authenticated()
-
-        logger.debug('is_authenticated() took %s s' % t.secs)
-
-        if is_auth:
-            # nothing more to do!
-            logger.debug('inside process_request: user is already authenticated: %s' % request.user)
-            return
-
-        else:
-            # the request.user isn't authenticated!
-            logger.debug('the request.user is not authenticated')
+            logger.debug('received a basic-lti-launch-request - authenticating the user')
 
             # authenticate and log the user in
             with Timer() as t:
                 user = auth.authenticate(request=request)
-
             logger.debug('authenticate() took %s s' % t.secs)
 
             if user is not None:
@@ -66,10 +52,8 @@ class LTIAuthMiddleware(object):
                 logger.debug('login() took %s s' % t.secs)
 
             else:
-                # User could not be authenticated! Bail!
-                logger.error('user could not be authenticated; let the request continue in case another auth plugin is configured')
-                #return HttpResponse('Authentication error! Sorry!')
-                #raise PermissionDenied()
+                # User could not be authenticated!
+                logger.warning('user could not be authenticated via LTI params; let the request continue in case another auth plugin is configured')
 
     def clean_username(self, username, request):
         """
