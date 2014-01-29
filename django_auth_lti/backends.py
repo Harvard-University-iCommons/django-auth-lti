@@ -134,6 +134,7 @@ class LTIAuthBackend(ModelBackend):
             'resource_link_id': request.POST.get('resource_link_id', None),
             'user_image': request.POST.get('user_image', None),
             'lis_outcome_service_url': request.POST.get('lis_outcome_service_url', None),
+            'lis_course_offering_sourcedid': request.POST.get('lis_course_offering_sourcedid', None),
             'selection_directive': request.POST.get('selection_directive', None),
             'resource_link_title': request.POST.get('resource_link_title', None),
             'resource_link_description': request.POST.get('resource_link_description', None),
