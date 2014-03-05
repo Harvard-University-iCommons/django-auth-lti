@@ -5,7 +5,15 @@ from django.core.exceptions import PermissionDenied
 from braces.views import LoginRequiredMixin
 
 
-class LTIRoleRestrictionMixin(object):
+class LTIUtilityMixin(object):
+    def get_lti_param(self, keyword, default=None):
+        return self.request.session['LTI_LAUNCH'].get(keyword, default)
+
+    def current_user_roles(self):
+        return self.get_lti_param('roles', [])
+
+
+class LTIRoleRestrictionMixin(LTIUtilityMixin):
     allowed_roles = None
     redirect_url = reverse_lazy('not_authorized')
     raise_exception = False
@@ -22,8 +30,7 @@ class LTIRoleRestrictionMixin(object):
         else:
             allowed = self.allowed_roles
 
-        lti_params = request.session.get('LTI_LAUNCH', None)
-        user_roles = lti_params.get('roles', [])
+        user_roles = self.current_user_roles()
 
         if set(allowed) & set(user_roles):
             return super(LTIRoleRestrictionMixin, self).dispatch(request, *args, **kwargs)
