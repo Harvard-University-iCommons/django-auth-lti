@@ -95,7 +95,8 @@ class LTIAuthMiddleware(object):
                 }
                 # If a custom role key is defined in project, merge into existing role list
                 if getattr(settings, 'LTI_CUSTOM_ROLE_KEY', None):
-                    lti_launch['roles'] += request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, '').split(',')
+                    custom_roles = request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, '').split(',')
+                    lti_launch['roles'] += filter(None, custom_roles)  # Filter out any empty roles
 
                 request.session['LTI_LAUNCH'] = lti_launch
 
