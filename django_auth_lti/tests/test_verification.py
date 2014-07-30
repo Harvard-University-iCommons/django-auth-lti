@@ -17,9 +17,21 @@ class TestVerification(TestCase):
         user_is_allowed = is_allowed(request, allowed_roles, False)
         self.assertTrue(user_is_allowed)
     
+    def test_is_allowed_success_one_role(self):
+        request = MagicMock(session={"LTI_LAUNCH": {"roles":["admin"]}})
+        allowed_roles = "admin"
+        user_is_allowed = is_allowed(request, allowed_roles, False)
+        self.assertTrue(user_is_allowed)
+    
     def test_is_allowed_failure(self):
         request = MagicMock(session={"LTI_LAUNCH": {"roles":[]}})
         allowed_roles = ["admin", "student"]
+        user_is_allowed = is_allowed(request, allowed_roles, False)
+        self.assertFalse(user_is_allowed)
+    
+    def test_is_allowed_failure_one_role(self):
+        request = MagicMock(session={"LTI_LAUNCH": {"roles":[]}})
+        allowed_roles = "admin"
         user_is_allowed = is_allowed(request, allowed_roles, False)
         self.assertFalse(user_is_allowed)
     
