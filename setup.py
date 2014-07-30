@@ -1,6 +1,5 @@
 import os
 from setuptools import setup
-from setuptools import find_packages
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 
@@ -9,8 +8,8 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='0.5',
-    packages=find_packages(),
+    version='0.7',
+    packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
     description='A simple Django app containing LTI auth middleware and backend.',
@@ -32,9 +31,11 @@ setup(
     ],
     install_requires=[
         "Django>=1.6",
-        "django-filter==0.7",
         "ims-lti-py==0.6",
         "django-braces==1.3.1",
+    ],
+    tests_require=[
+        'mock',
     ],
     zip_safe=False,
 )

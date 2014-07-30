@@ -1,6 +1,7 @@
 from django.contrib import auth
 
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
 
 from timer import Timer
 
@@ -83,6 +84,7 @@ class LTIAuthMiddleware(object):
                     'lis_person_name_given': request.POST.get('lis_person_name_given', None),
                     'lis_person_name_family': request.POST.get('lis_person_name_family', None),
                     'lis_person_contact_email_primary': request.POST.get('lis_person_contact_email_primary', None),
+                    'lis_person_name_full': request.POST.get('lis_person_name_full', None),
                     'user_id': request.POST.get('user_id', None),
                     'custom_canvas_user_id': request.POST.get('custom_canvas_user_id', None),
                     'custom_canvas_api_domain': request.POST.get('custom_canvas_api_domain', None),
@@ -91,6 +93,10 @@ class LTIAuthMiddleware(object):
                     'custom_canvas_user_login_id': request.POST.get('custom_canvas_user_login_id', None),
                     'roles': request.POST.get('roles', '').split(','),
                 }
+                # If a custom role key is defined in project, merge into existing role list
+                if hasattr(settings, 'LTI_CUSTOM_ROLE_KEY'):
+                    custom_roles = request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, '').split(',')
+                    lti_launch['roles'] += filter(None, custom_roles)  # Filter out any empty roles
 
                 request.session['LTI_LAUNCH'] = lti_launch
 

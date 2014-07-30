@@ -5,7 +5,15 @@ from braces.views import LoginRequiredMixin
 from django_auth_lti.verification import is_allowed
 
 
-class LTIRoleRestrictionMixin(object):
+class LTIUtilityMixin(object):
+    def get_lti_param(self, keyword, default=None):
+        return self.request.session['LTI_LAUNCH'].get(keyword, default)
+
+    def current_user_roles(self):
+        return self.get_lti_param('roles', [])
+
+
+class LTIRoleRestrictionMixin(LTIUtilityMixin):
     allowed_roles = None
     redirect_url = reverse_lazy('not_authorized')
     raise_exception = False
