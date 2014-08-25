@@ -63,8 +63,6 @@ class LTIAuthBackend(ModelBackend):
 
         logger.info("done checking the signature")
 
-        print tool_provider.oauth_timestamp
-
         logger.info("about to check the timestamp: %d" % int(tool_provider.oauth_timestamp))
         if time() - int(tool_provider.oauth_timestamp) > 60 * 60:
             logger.error("OAuth timestamp is too old.")
