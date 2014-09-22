@@ -84,6 +84,7 @@ class LTIAuthMiddleware(object):
                     'lis_person_name_family': request.POST.get('lis_person_name_family', None),
                     'lis_person_contact_email_primary': request.POST.get('lis_person_contact_email_primary', None),
                     'lis_person_name_full': request.POST.get('lis_person_name_full', None),
+                    'lis_person_sourcedid': request.POST.get('lis_person_sourcedid', None),
                     'user_id': request.POST.get('user_id', None),
                     'custom_canvas_user_id': request.POST.get('custom_canvas_user_id', None),
                     'custom_canvas_api_domain': request.POST.get('custom_canvas_api_domain', None),
