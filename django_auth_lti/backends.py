@@ -10,9 +10,6 @@ logger = logging.getLogger(__name__)
 
 from django.conf import settings
 
-# get credentials from config
-oauth_creds = settings.LTI_OAUTH_CREDENTIALS
-
 
 class LTIAuthBackend(ModelBackend):
 
@@ -38,11 +35,11 @@ class LTIAuthBackend(ModelBackend):
             logger.error("Request doesn't contain an oauth_consumer_key; can't continue.")
             return None
 
-        if not oauth_creds:
+        if not settings.LTI_OAUTH_CREDENTIALS:
             logger.error("Missing LTI_OAUTH_CREDENTIALS in settings")
             raise PermissionDenied
 
-        secret = oauth_creds.get(request_key, None)
+        secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
 
         if secret is None:
             logger.error("Could not get a secret for key %s" % request_key)
