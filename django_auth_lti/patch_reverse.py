@@ -1,6 +1,9 @@
 """
 Monkey-patch django.core.urlresolvers.reverse to add resource_link_id to all URLs
 """
+from urlparse import urlparse, urlunparse, parse_qs
+from urllib import urlencode
+
 from django.core import urlresolvers
 
 from .thread_local import get_current_request
@@ -15,9 +18,12 @@ def reverse(*args, **kwargs):
     """
     request = get_current_request()
     url = django_reverse(*args, **kwargs)
-    if '?' not in url:
-        url += '?'
-    return "%s&resource_link_id=%s" % (url, request.LTI.get('resource_link_id'))
+    parsed = urlparse(url)
+    query = parse_qs(parsed.query)
+    if 'resource_link_id' not in query.keys():
+        query['resource_link_id'] = request.LTI.get('resource_link_id')
+        url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, urlencode(query), parsed.fragment))
+    return url
 
 
 def patch_reverse():
