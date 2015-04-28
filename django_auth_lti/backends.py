@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ImproperlyConfigured
+from django.utils.module_loading import import_string
 
-from ims_lti_py.tool_provider import DjangoToolProvider
+from ims_lti_py.contrib.django import DjangoToolProvider
 from time import time
 import logging
 
@@ -10,6 +11,12 @@ logger = logging.getLogger(__name__)
 
 from django.conf import settings
 
+def get_validator():
+    try:
+        validator_path = settings.LTI_REQUEST_VALIDATOR
+        return import_string(validator_path)()
+    except AttributeError:
+        raise ImproperlyConfigured("No LTI_REQUEST_VALIDATOR defined")
 
 class LTIAuthBackend(ModelBackend):
 
@@ -46,7 +53,7 @@ class LTIAuthBackend(ModelBackend):
             raise PermissionDenied
 
         logger.debug('using key/secret %s/%s' % (request_key, secret))
-        tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
+        tool_provider = DjangoToolProvider.from_django_request(secret, request)
 
         postparams = request.POST.dict()
 
@@ -61,7 +68,8 @@ class LTIAuthBackend(ModelBackend):
 
         logger.info("about to check the signature")
 
-        if not tool_provider.is_valid_request(request):
+        validator = get_validator()
+        if not tool_provider.is_valid_request(validator):
             logger.error("Invalid request: signature check failed.")
             raise PermissionDenied
 
@@ -131,7 +139,10 @@ class LTIAuthBackend(ModelBackend):
         return user
 
     def clean_username(self, username):
-        return username
+        # if username was created from the lti 'user_id' param it could be
+        # longer than the django user model's username max_length, so
+        # truncate it. should still be unique enough, but, yeah, blech.
+        return username[:30]
 
     def get_default_username(self, tool_provider, prefix=''):
         """
