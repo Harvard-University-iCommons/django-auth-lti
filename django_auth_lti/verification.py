@@ -1,5 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
+
 def is_allowed(request, allowed_roles, raise_exception):
     # allowed_roles can either be a string (for just one)
     # or a tuple or list (for several)
@@ -14,9 +15,14 @@ def is_allowed(request, allowed_roles, raise_exception):
         # the correct settings or is being run outside of an lti context
         raise ImproperlyConfigured("No LTI_LAUNCH found in session")
     user_roles = lti_launch.get('roles', [])
-    is_user_allowed =  set(allowed) & set(user_roles)
+    is_user_allowed = set(allowed) & set(user_roles)
     
     if not is_user_allowed and raise_exception:
         raise PermissionDenied
     
     return is_user_allowed
+
+
+def has_lti_role(request, role):
+    roles = request.session['LTI_LAUNCH'].get('roles', [])
+    return set(roles) & set([role])
