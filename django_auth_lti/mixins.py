@@ -7,7 +7,7 @@ from django_auth_lti.verification import is_allowed
 
 class LTIUtilityMixin(object):
     def get_lti_param(self, keyword, default=None):
-        return self.request.session['LTI_LAUNCH'].get(keyword, default)
+        return self.request.LTI.get(keyword, default)
 
     def current_user_roles(self):
         return self.get_lti_param('roles', [])

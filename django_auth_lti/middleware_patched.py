@@ -1,5 +1,6 @@
 import logging
 import json
+import django_auth_lti.patch_reverse
 
 from collections import OrderedDict
 
@@ -9,11 +10,13 @@ from django.conf import settings
 
 from timer import Timer
 
+from .thread_local import set_current_request
+
 
 logger = logging.getLogger(__name__)
 
 
-class LTIAuthMiddleware(object):
+class MultiLTILaunchAuthMiddleware(object):
     """
     Middleware for authenticating users via an LTI launch URL.
 
@@ -22,11 +25,19 @@ class LTIAuthMiddleware(object):
     If authentication is successful, the user is automatically logged in to
     persist the user in the session.
 
-    If the request is not an LTI launch request, do nothing.
+    The LTI launch parameter dict is stored in the session keyed with the
+    resource_link_id to uniquely identify LTI launches of the LTI producer.
+    The LTI launch parameter dict is also set as the 'LTI' attribute on the
+    current request object to simplify access to the parameters.
+
+    The current request object is set as a thread local attribute so that the
+    monkey-patching of django's reverse() function (see ./__init__.py) can access
+    it in order to retrieve the current resource_link_id.
     """
 
     def process_request(self, request):
         logger.debug('inside process_request %s' % request.path)
+
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):
             logger.debug('improperly configured: requeset has no user attr')
@@ -37,8 +48,8 @@ class LTIAuthMiddleware(object):
                 " 'django.contrib.auth.middleware.AuthenticationMiddleware'"
                 " before the PINAuthMiddleware class.")
 
+        resource_link_id = None
         if request.method == 'POST' and request.POST.get('lti_message_type') == 'basic-lti-launch-request':
-
             logger.debug('received a basic-lti-launch-request - authenticating the user')
 
             # authenticate and log the user in
@@ -54,14 +65,15 @@ class LTIAuthMiddleware(object):
                 request.user = user
                 with Timer() as t:
                     auth.login(request, user)
-
+    
                 logger.debug('login() took %s s' % t.secs)
 
+                resource_link_id = request.POST.get('resource_link_id', None)
                 lti_launch = {
                     'custom_canvas_account_id': request.POST.get('custom_canvas_account_id', None),
                     'lis_outcome_service_url': request.POST.get('lis_outcome_service_url', None),
                     'lti_message_type': request.POST.get('lti_message_type', None),
-                    'resource_link_id': request.POST.get('resource_link_id', None),
+                    'resource_link_id': resource_link_id,
                     'user_image': request.POST.get('user_image', None),
                     'lis_outcome_service_url': request.POST.get('lis_outcome_service_url', None),
                     'lis_course_offering_sourcedid': request.POST.get('lis_course_offering_sourcedid', None),
@@ -103,18 +115,28 @@ class LTIAuthMiddleware(object):
                     custom_roles = request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, '').split(',')
                     lti_launch['roles'] += filter(None, custom_roles)  # Filter out any empty roles
 
-                request.session['LTI_LAUNCH'] = lti_launch
+                lti_launches = request.session.get('LTI_LAUNCH')
+                if not lti_launches:
+                    lti_launches = OrderedDict()
+                    request.session['LTI_LAUNCH'] = lti_launches
 
+                # Limit the number of LTI launches stored in the session
+                if len(lti_launches.keys()) >= getattr(settings, 'LTI_AUTH_MAX_LAUNCHES', 10):
+                    invalidated_launch = lti_launches.popitem(last=False)
+                    logger.info("LTI launch invalidated: %s", json.dumps(invalidated_launch, indent=4))
+
+                lti_launches[resource_link_id] = lti_launch
+                logger.info("LTI launch added to session: %s", json.dumps(lti_launch, indent=4))
             else:
                 # User could not be authenticated!
                 logger.warning('user could not be authenticated via LTI params; let the request continue in case another auth plugin is configured')
+        else:
+            resource_link_id = request.GET.get('resource_link_id', None)
 
-        # Other functions in django-auth-lti expect there to be an LTI attribute on the request object
-        # This enables backwards compatibility with consumers of this package who still want to use this
-        # single launch version of LTIAuthMiddleware
-        setattr(request, 'LTI', request.session.get('LTI_LAUNCH', {}))
+        setattr(request, 'LTI', request.session.get('LTI_LAUNCH', {}).get(resource_link_id, {}))
+        set_current_request(request)
         if not request.LTI:
-            logger.warning("Could not find LTI launch parameters")
+            logger.warning("Could not find LTI launch for resource_link_id %s", resource_link_id)
 
     def clean_username(self, username, request):
         """
