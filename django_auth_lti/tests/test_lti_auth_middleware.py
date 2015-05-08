@@ -19,6 +19,9 @@ class TestLTIAuthMiddleware(unittest.TestCase):
         """
         # Add message type to post data
         post_data.update(lti_message_type='basic-lti-launch-request')
+        # Add resource_link_id to post data
+        post_data.update(resource_link_id='d202fb112a14f27107149ed874bf630aa8e029a5')
+
         request = RequestFactory().post('/fake/lti/launch', post_data)
         request.user = mock.Mock(name='User', spec=models.User)
         request.session = {}
@@ -36,7 +39,7 @@ class TestLTIAuthMiddleware(unittest.TestCase):
         })
         with patch('django_auth_lti.middleware.settings', LTI_CUSTOM_ROLE_KEY='test_custom_role_key'):
             self.mw.process_request(request)
-        self.assertEqual(request.session['LTI_LAUNCH']['roles'], ['RoleOne', 'RoleTwo', 'My', 'Custom', 'Roles'])
+        self.assertEqual(request.LTI.get('roles'), ['RoleOne', 'RoleTwo', 'My', 'Custom', 'Roles'])
 
     @patch('django_auth_lti.middleware.auth')
     def test_roles_merge_with_empty_custom_roles(self, mock_auth, mock_logger):
@@ -49,7 +52,7 @@ class TestLTIAuthMiddleware(unittest.TestCase):
         })
         with patch('django_auth_lti.middleware.settings', LTI_CUSTOM_ROLE_KEY='test_custom_role_key'):
             self.mw.process_request(request)
-        self.assertEqual(request.session['LTI_LAUNCH']['roles'], ['RoleOne', 'RoleTwo'])
+        self.assertEqual(request.LTI.get('roles'), ['RoleOne', 'RoleTwo'])
 
     @patch('django_auth_lti.middleware.auth')
     def test_roles_not_merged_with_no_role_key(self, mock_auth, mock_logger):
@@ -61,5 +64,4 @@ class TestLTIAuthMiddleware(unittest.TestCase):
             'test_custom_role_key': 'My,Custom,Roles',
         })
         self.mw.process_request(request)
-        self.assertEqual(request.session['LTI_LAUNCH']['roles'], ['RoleOne', 'RoleTwo'])
-
+        self.assertEqual(request.LTI.get('roles'), ['RoleOne', 'RoleTwo'])
