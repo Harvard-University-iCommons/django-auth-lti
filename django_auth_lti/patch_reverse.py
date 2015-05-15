@@ -21,11 +21,8 @@ def reverse(*args, **kwargs):
     """
     request = get_current_request()
 
-    # Check for custom exclude_resource
-    exclude_resource_link_id = False
-    if 'exclude_resource_link_id' in kwargs:
-        exclude_resource_link_id = kwargs['exclude_resource_link_id']
-        del kwargs['exclude_resource_link_id']
+    # Check for custom exclude_resource_link_id kwarg and remove it before passing kwargs to django reverse
+    exclude_resource_link_id = kwargs.pop('exclude_resource_link_id', False)
 
     url = django_reverse(*args, **kwargs)
     if not exclude_resource_link_id:
