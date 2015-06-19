@@ -107,6 +107,8 @@ class MultiLTILaunchAuthMiddleware(object):
                     'custom_canvas_api_domain': request.POST.get('custom_canvas_api_domain', None),
                     'custom_canvas_enrollment_state': request.POST.get('custom_canvas_enrollment_state', None),
                     'custom_canvas_course_id': request.POST.get('custom_canvas_course_id', None),
+                    'custom_canvas_account_id': request.POST.get('custom_canvas_account_id', None),
+                    'custom_canvas_account_sis_id': request.POST.get('custom_canvas_account_sis_id', None),
                     'custom_canvas_user_login_id': request.POST.get('custom_canvas_user_login_id', None),
                     'roles': request.POST.get('roles', '').split(','),
                 }
