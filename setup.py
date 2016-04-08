@@ -33,6 +33,7 @@ setup(
         "Django>=1.6",
         "ims-lti-py==0.6",
         "django-braces==1.3.1",
+        "oauth2==1.9.0.post1", # to catch errors uncaught by ims-lti-py
     ],
     tests_require=[
         'mock',
