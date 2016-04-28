@@ -98,6 +98,7 @@ class LTIAuthMiddleware(object):
                     'tool_consumer_instance_url': request.POST.get('tool_consumer_instance_url', None),
                     'user_id': request.POST.get('user_id', None),
                     'user_image': request.POST.get('user_image', None),
+                    'text': request.POST.get('text', None),
                 }
                 # If a custom role key is defined in project, merge into existing role list
                 if hasattr(settings, 'LTI_CUSTOM_ROLE_KEY'):
