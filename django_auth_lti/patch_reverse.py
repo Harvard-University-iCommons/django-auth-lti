@@ -5,6 +5,7 @@ from urlparse import urlparse, urlunparse, parse_qs
 from urllib import urlencode
 
 from django.core import urlresolvers
+from django.conf import settings
 
 from .thread_local import get_current_request
 
@@ -23,6 +24,13 @@ def reverse(*args, **kwargs):
 
     # Check for custom exclude_resource_link_id kwarg and remove it before passing kwargs to django reverse
     exclude_resource_link_id = kwargs.pop('exclude_resource_link_id', False)
+
+    # Check if this app is in the RESOURCE_LINK_ID_BLACKLIST in the main settings. If it is then dont pass
+    # resource_link_id as a param.
+    if not exclude_resource_link_id:
+        blacklist = settings.get('RESOURCE_LINK_ID_BLACKLIST', [])
+        if request.resolver_match.app_name in blacklist:
+            exclude_resource_link_id = True
 
     url = django_reverse(*args, **kwargs)
     if not exclude_resource_link_id:
