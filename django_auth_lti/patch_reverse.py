@@ -28,9 +28,19 @@ def reverse(*args, **kwargs):
     # Check if this app is in the RESOURCE_LINK_ID_BLACKLIST in the main settings. If it is then dont pass
     # resource_link_id as a param.
     if not exclude_resource_link_id:
-        blacklist = settings.get('RESOURCE_LINK_ID_BLACKLIST', [])
-        if request.resolver_match.app_name in blacklist:
+        blacklist = getattr(settings, 'RESOURCE_LINK_ID_BLACKLIST', [])
+        viewname = args[0]
+        if viewname in blacklist:
             exclude_resource_link_id = True
+        else:
+            try:
+                namespace, viewname = viewname.split(':')
+                if '{}:*'.format(namespace) in blacklist:
+                    # Exclude the whole namespace
+                    exclude_resource_link_id = True
+            except ValueError:
+                # No namespace, just ignore.
+                pass
 
     url = django_reverse(*args, **kwargs)
     if not exclude_resource_link_id:
