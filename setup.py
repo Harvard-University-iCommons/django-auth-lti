@@ -8,15 +8,15 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='1.2.5',
+    version='1.2.6',
     packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
     description='A simple Django app containing LTI auth middleware and backend.',
     long_description=README,
-    url='http://icommons.harvard.edu/',
-    author='Colin Murtaugh',
-    author_email='colin_murtaugh@harvard.edu',
+    url='http://tlt.harvard.edu/',
+    author='Harvard University Teaching and Learning Technologies Program',
+    author_email='tlt-ops@g.harvard.edu',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
