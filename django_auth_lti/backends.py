@@ -8,6 +8,8 @@ from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
 from ims_lti_py.tool_provider import DjangoToolProvider
 
+from django_auth_lti.models import LTIOauthCredentials
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,11 +38,22 @@ class LTIAuthBackend(ModelBackend):
             logger.error("Request doesn't contain an oauth_consumer_key; can't continue.")
             return None
 
-        if not settings.LTI_OAUTH_CREDENTIALS:
-            logger.error("Missing LTI_OAUTH_CREDENTIALS in settings")
-            raise PermissionDenied
+        # Are we using the dictionary of key:secrets in settings or the db backed oauth credentials
+        if getattr(settings, 'LTI_OAUTH_USE_DB_CREDENTIALS', False):
+            # Using the DB
+            try:
+                c = LTIOauthCredentials.objects.get(key=request_key)
+                if c.enabled is False:
+                    raise PermissionDenied
+                secret = c.secret
+            except LTIOauthCredentials.DoesNotExist:
+                raise PermissionDenied
+        else:
+            if not settings.LTI_OAUTH_CREDENTIALS:
+                logger.error("Missing LTI_OAUTH_CREDENTIALS in settings")
+                raise PermissionDenied
 
-        secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
+            secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
 
         if secret is None:
             logger.error("Could not get a secret for key %s" % request_key)
