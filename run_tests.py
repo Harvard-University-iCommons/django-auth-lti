@@ -1,15 +1,15 @@
 #!/usr/bin/env python
+import os
+import sys
 
+import django
 from django.conf import settings
+from django.test.utils import get_runner
 
-
-def runtests():
-    settings.configure(
-        # App-specific setttings here
-    )
-    # settings must be configured for this import to work
-    from django.test.runner import DiscoverRunner
-    DiscoverRunner(interactive=False, failfast=False).run_tests(['django_auth_lti'])
-
-if __name__ == '__main__':
-    runtests()
+if __name__ == "__main__":
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'tests.test_settings'
+    django.setup()
+    TestRunner = get_runner(settings)
+    test_runner = TestRunner()
+    failures = test_runner.run_tests(["tests"])
+    sys.exit(bool(failures))
