@@ -1,15 +1,10 @@
 """
-Monkey-patch django.core.urlresolvers.reverse to add resource_link_id to all URLs
+Monkey-patch django's reverse function to add resource_link_id to all URLs.
 """
-import logging
 from urlparse import urlparse, urlunparse, parse_qs
 from urllib import urlencode
 
-# Django 1.10 moved urlresolvers into django.urls package
-try:
-    from django import urls as urlresolvers
-except ImportError:
-    from django.core import urlresolvers
+from django.core import urlresolvers
 
 from .thread_local import get_current_request
 
@@ -20,26 +15,30 @@ django_reverse = None
 
 def reverse(*args, **kwargs):
     """
-    Call django's reverse function and append the current resource_link_id as a query parameter
+    Call django's reverse function and append the current resource_link_id as a
+    query parameter
 
-    :param kwargs['exclude_resource_link_id']: Do not add the resource link id as a query parameter
+    :param kwargs['exclude_resource_link_id']: Do not add the resource link id
+    as a query parameter
     :returns Django named url
     """
-    logger.debug("inside custom reverse function!")
     request = get_current_request()
 
-    # Check for custom exclude_resource_link_id kwarg and remove it before passing kwargs to django reverse
+    # Check for custom exclude_resource_link_id kwarg and remove it before
+    # passing kwargs to django reverse
     exclude_resource_link_id = kwargs.pop('exclude_resource_link_id', False)
 
     url = django_reverse(*args, **kwargs)
     if not exclude_resource_link_id:
-        # Append resource_link_id query param if exclude_resource_link_id kwarg was not passed or is False
+        # Append resource_link_id query param if exclude_resource_link_id kwarg
+        # was not passed or is False
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
         if 'resource_link_id' not in query.keys():
             query['resource_link_id'] = request.LTI.get('resource_link_id')
             url = urlunparse(
-                (parsed.scheme, parsed.netloc, parsed.path, parsed.params, urlencode(query), parsed.fragment)
+                (parsed.scheme, parsed.netloc, parsed.path, parsed.params,
+                 urlencode(query), parsed.fragment)
             )
     return url
 
@@ -50,9 +49,22 @@ def patch_reverse():
     """
     global django_reverse
     if urlresolvers.reverse is not reverse:
-        logger.debug("inside patch_reverse where urlresolvers.reverse != reverse")
         django_reverse = urlresolvers.reverse
         urlresolvers.reverse = reverse
+
+        # Django 1.10 moves url helper functions like `reverse` into a new urls
+        # module, so we need to patch it as well.  In addition, the
+        # django.shortcuts module now includes `reverse` directly, and the
+        # module appears to be loaded before middleware so we need to
+        # retroactively patch that `reverse` reference as well.
+        try:
+            import django
+            from django import urls
+
+            urls.reverse = reverse
+            django.shortcuts.reverse = reverse
+        except ImportError:
+            pass
 
 
 patch_reverse()
