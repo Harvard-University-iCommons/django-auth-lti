@@ -8,8 +8,6 @@ from django.core import urlresolvers
 
 from .thread_local import get_current_request
 
-logger = logging.getLogger(__name__)
-
 django_reverse = None
 
 
