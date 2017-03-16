@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='1.2.6',
+    version='1.2.7',
     packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
@@ -33,7 +33,7 @@ setup(
         "Django>=1.6",
         "ims-lti-py==0.6",
         "django-braces==1.3.1",
-        "oauth2==1.9.0.post1", # to catch errors uncaught by ims-lti-py
+        "oauth2==1.9.0.post1",  # to catch errors uncaught by ims-lti-py
     ],
     tests_require=[
         'mock',

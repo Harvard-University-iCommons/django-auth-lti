@@ -3,7 +3,7 @@ import mock
 from mock import patch
 from django.test import RequestFactory
 from django.contrib.auth import models
-from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
+from django_auth_lti.middleware import LTIAuthMiddleware
 
 
 @patch('django_auth_lti.middleware.logger')
@@ -11,7 +11,7 @@ class TestLTIAuthMiddleware(unittest.TestCase):
     longMessage = True
 
     def setUp(self):
-        self.mw = MultiLTILaunchAuthMiddleware()
+        self.mw = LTIAuthMiddleware()
 
     def build_lti_launch_request(self, post_data):
         """
