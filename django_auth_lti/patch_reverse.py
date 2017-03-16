@@ -56,11 +56,9 @@ def patch_reverse():
         # module appears to be loaded before middleware so we need to
         # retroactively patch that `reverse` reference as well.
         try:
-            import django
-            from django import urls
-
+            from django import urls, shortcuts
             urls.reverse = reverse
-            django.shortcuts.reverse = reverse
+            shortcuts.reverse = reverse
         except ImportError:
             pass
 
