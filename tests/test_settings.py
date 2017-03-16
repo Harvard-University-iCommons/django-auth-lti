@@ -14,8 +14,6 @@ INSTALLED_APPS = [
     'django_auth_lti',
 ]
 
-ROOT_URLCONF = 'tests.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
