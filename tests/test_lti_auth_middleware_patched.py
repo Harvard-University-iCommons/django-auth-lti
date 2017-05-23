@@ -6,11 +6,6 @@ from django.test import TestCase, override_settings
 import helpers
 import logging
 
-logger = logging.getLogger('django_auth_lti.middleware_patched')
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler()
-logger.addHandler(ch)
-
 LTI_AUTH_MAX_LAUNCHES=3
 
 @patch('django_auth_lti.middleware.logger')
