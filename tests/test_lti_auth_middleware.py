@@ -1,9 +1,7 @@
 import unittest
-import mock
 from mock import patch
-from django.test import RequestFactory
-from django.contrib.auth import models
-from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
+from django_auth_lti.middleware import LTIAuthMiddleware
+import helpers
 
 
 @patch('django_auth_lti.middleware.logger')
@@ -11,21 +9,10 @@ class TestLTIAuthMiddleware(unittest.TestCase):
     longMessage = True
 
     def setUp(self):
-        self.mw = MultiLTILaunchAuthMiddleware()
+        self.mw = LTIAuthMiddleware()
 
     def build_lti_launch_request(self, post_data):
-        """
-        Utility method that builds a fake lti launch request with custom data.
-        """
-        # Add message type to post data
-        post_data.update(lti_message_type='basic-lti-launch-request')
-        # Add resource_link_id to post data
-        post_data.update(resource_link_id='d202fb112a14f27107149ed874bf630aa8e029a5')
-
-        request = RequestFactory().post('/fake/lti/launch', post_data)
-        request.user = mock.Mock(name='User', spec=models.User)
-        request.session = {}
-        return request
+        return helpers.build_lti_launch_request(post_data)
 
     @patch('django_auth_lti.middleware.auth')
     def test_roles_merged_with_custom_roles(self, mock_auth, mock_logger):

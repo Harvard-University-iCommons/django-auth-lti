@@ -8,15 +8,15 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='1.2.0',
+    version='1.2.9',
     packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
     description='A simple Django app containing LTI auth middleware and backend.',
     long_description=README,
-    url='http://icommons.harvard.edu/',
-    author='Colin Murtaugh',
-    author_email='colin_murtaugh@harvard.edu',
+    url='http://tlt.harvard.edu/',
+    author='Harvard University Teaching and Learning Technologies Program',
+    author_email='tlt-ops@g.harvard.edu',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
@@ -33,6 +33,7 @@ setup(
         "Django>=1.6",
         "ims-lti-py==0.6",
         "django-braces==1.3.1",
+        "oauth2==1.9.0.post1",  # to catch errors uncaught by ims-lti-py
     ],
     tests_require=[
         'mock',
