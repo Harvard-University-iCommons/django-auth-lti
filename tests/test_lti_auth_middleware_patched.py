@@ -56,5 +56,3 @@ class TestLTIAuthMiddleware(unittest.TestCase):
         request.session = dict(LTI_LAUNCH=lti_launch)
         self.mw.process_request(request)
         self.assertIsInstance(request.session['LTI_LAUNCH'], OrderedDict)
-
-        #or not isinstance(lti_launches, OrderedDict)
