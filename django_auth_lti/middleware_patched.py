@@ -40,7 +40,7 @@ class MultiLTILaunchAuthMiddleware(object):
 
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):
-            logger.debug('improperly configured: requeset has no user attr')
+            logger.debug('improperly configured: request has no user attr')
             raise ImproperlyConfigured(
                 "The Django LTI auth middleware requires the"
                 " authentication middleware to be installed.  Edit your"
@@ -117,12 +117,14 @@ class MultiLTILaunchAuthMiddleware(object):
                     lti_launch['roles'] += filter(None, custom_roles)  # Filter out any empty roles
 
                 lti_launches = request.session.get('LTI_LAUNCH')
-                if not lti_launches:
+                if not lti_launches or not isinstance(lti_launches, OrderedDict):
                     lti_launches = OrderedDict()
                     request.session['LTI_LAUNCH'] = lti_launches
 
                 # Limit the number of LTI launches stored in the session
-                if len(lti_launches.keys()) >= getattr(settings, 'LTI_AUTH_MAX_LAUNCHES', 10):
+                max_launches = getattr(settings, 'LTI_AUTH_MAX_LAUNCHES', 10)
+                logger.info("LTI launch count %s [max=%s]" % (len(lti_launches.keys()), max_launches))
+                if len(lti_launches.keys()) >= max_launches:
                     invalidated_launch = lti_launches.popitem(last=False)
                     logger.info("LTI launch invalidated: %s", json.dumps(invalidated_launch, indent=4))
 
