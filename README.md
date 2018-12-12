@@ -5,7 +5,7 @@ django_auth_lti is a package that provides Django authentication middleware and 
 
 To use LTI authentication with a Django app, edit settings.py as follows:
 
-* add 'django_auth_lti.middleware_patched.MultiLTILaunchAuthMiddleware' to your MIDDLEWARE_CLASSES, making sure that it appears AFTER 'django.contrib.auth.middleware.AuthenticationMiddleware'
+* add 'django_auth_lti.middleware_patched.MultiLTILaunchAuthMiddleware' to your MIDDLEWARE (Django >= 1.10) or MIDDLEWARE_CLASSES (Django < 1.10), making sure that it appears AFTER 'django.contrib.auth.middleware.AuthenticationMiddleware'
 
 * add 'django_auth_lti.backends.LTIAuthBackend' to your BACKEND_CLASSES
 
