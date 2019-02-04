@@ -12,11 +12,16 @@ from timer import Timer
 
 from .thread_local import set_current_request
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django < 1.10
+    MiddlewareMixin = object
+
 
 logger = logging.getLogger(__name__)
 
 
-class MultiLTILaunchAuthMiddleware(object):
+class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
     """
     Middleware for authenticating users via an LTI launch URL.
 

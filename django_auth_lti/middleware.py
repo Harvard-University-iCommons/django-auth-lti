@@ -13,11 +13,16 @@ from django.conf import settings
 
 from timer import Timer
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:  # Django < 1.10
+    MiddlewareMixin = object
+
 
 logger = logging.getLogger(__name__)
 
 
-class LTIAuthMiddleware(object):
+class LTIAuthMiddleware(MiddlewareMixin):
     """
     Middleware for authenticating users via an LTI launch URL.
 
