@@ -1,10 +1,8 @@
 import unittest
-from collections import OrderedDict
 from mock import patch
 from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
 from django.test import TestCase, override_settings
 import helpers
-import logging
 
 LTI_AUTH_MAX_LAUNCHES=3
 
@@ -21,33 +19,80 @@ class TestLTIAuthMiddleware(unittest.TestCase):
     @override_settings(LTI_AUTH_MAX_LAUNCHES=LTI_AUTH_MAX_LAUNCHES)
     @patch('django_auth_lti.middleware_patched.auth')
     @patch('django_auth_lti.middleware_patched.set_current_request')
-    def test_lti_max_launches(self, mock_set_current_request, mock_auth, mock_logger):
+    def test_lti_multi_launch(self, mock_set_current_request, mock_auth, mock_logger):
+        """
+        Asserts that multiple LTI launches are maintained in the session.
+        """
+        mock_auth.authenticate.return_value = True
+        session = dict()
+        resource_link_ids = ('abc123', 'def456')
+        for resource_link_id in resource_link_ids:
+            request = self.build_lti_launch_request({"resource_link_id": resource_link_id})
+            request.session = session
+            self.mw.process_request(request)
+            session = request.session  # persist the session across requests
+
+        self.assertIn('LTI_LAUNCH', session)
+        self.assertIsInstance(session['LTI_LAUNCH'], dict)
+        self.assertEqual(len(resource_link_ids), len(session['LTI_LAUNCH'].keys()))
+        for resource_link_id in resource_link_ids:
+            self.assertIn(resource_link_id, session['LTI_LAUNCH'])
+            self.assertEqual(resource_link_id, request.session['LTI_LAUNCH'][resource_link_id]["resource_link_id"])
+
+
+    @override_settings(LTI_AUTH_MAX_LAUNCHES=LTI_AUTH_MAX_LAUNCHES)
+    @patch('django_auth_lti.middleware_patched.auth')
+    @patch('django_auth_lti.middleware_patched.set_current_request')
+    def test_lti_exceeds_max_launches(self, mock_set_current_request, mock_auth, mock_logger):
         """
         Asserts the constraint for maximum number of LTI launches.
         """
         mock_auth.authenticate.return_value = True
-
         session = dict()
-        for i in range(LTI_AUTH_MAX_LAUNCHES + 2):
-            launch_num = i + 1
+        resource_link_ids = []
+        total_launches = LTI_AUTH_MAX_LAUNCHES + 2
+        for i in range(total_launches):
+            launch_count = i + 1
             resource_link_id = 'a312fb112a14f9' + str(i)
+            resource_link_ids.append(resource_link_id)
+
             request = self.build_lti_launch_request({"resource_link_id": resource_link_id})
             request.session = session
             self.mw.process_request(request)
-            self.assertIsInstance(request.session['LTI_LAUNCH'], OrderedDict)
 
-            actual_launch_count = len(request.session['LTI_LAUNCH'].keys())
-            expected_launch_count = launch_num
-            if launch_num >= LTI_AUTH_MAX_LAUNCHES:
-                expected_launch_count = LTI_AUTH_MAX_LAUNCHES
+            self.assertIn('LTI_LAUNCH_COUNT', request.session)
+            self.assertIn('LTI_LAUNCH', request.session)
+            self.assertIn(resource_link_id, request.session['LTI_LAUNCH'])
+            self.assertEqual(launch_count, request.session['LTI_LAUNCH'][resource_link_id]["_order"])
+            self.assertEqual(launch_count, request.session['LTI_LAUNCH_COUNT'])
+            self.assertLessEqual(len(request.session['LTI_LAUNCH'].keys()), request.session['LTI_LAUNCH_COUNT'])
+            self.assertLessEqual(len(request.session['LTI_LAUNCH'].keys()), LTI_AUTH_MAX_LAUNCHES)
+            session = request.session # persist the session across requests
 
-            self.assertTrue(expected_launch_count, actual_launch_count)
+        # Check that the oldest launches were invalidated
+        for i in range(total_launches - LTI_AUTH_MAX_LAUNCHES):
+            self.assertNotIn(resource_link_ids[i], session['LTI_LAUNCH'])
 
+
+    @override_settings(LTI_AUTH_MAX_LAUNCHES=LTI_AUTH_MAX_LAUNCHES)
     @patch('django_auth_lti.middleware_patched.auth')
-    def test_old_lti_launch_session_dict(self, mock_auth, mock_logger):
+    @patch('django_auth_lti.middleware_patched.set_current_request')
+    def test_lti_relaunch(self, mock_set_current_request, mock_auth, mock_logger):
+        """
+        Asserts that the same tool relaunched will only occupy one slot.
+        """
         mock_auth.authenticate.return_value = True
-        request = self.build_lti_launch_request({})
-        lti_launch = {"custom_foo": "bar"}
-        request.session = dict(LTI_LAUNCH=lti_launch)
-        self.mw.process_request(request)
-        self.assertIsInstance(request.session['LTI_LAUNCH'], OrderedDict)
+        session = dict()
+        resource_link_id = 'a312fb112a14f9'
+        total_launches = LTI_AUTH_MAX_LAUNCHES + 2
+        for i in range(total_launches):
+            request = self.build_lti_launch_request({"resource_link_id": resource_link_id})
+            request.session = session
+            self.mw.process_request(request)
+            session = request.session  # persist the session across requests
+
+        self.assertIn('LTI_LAUNCH_COUNT', session)
+        self.assertIn('LTI_LAUNCH', session)
+        self.assertIn(resource_link_id, session['LTI_LAUNCH'])
+        self.assertEqual(1, len(session['LTI_LAUNCH'].keys()))
+        self.assertLessEqual(total_launches, session['LTI_LAUNCH_COUNT'])
