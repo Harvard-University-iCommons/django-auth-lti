@@ -1,12 +1,6 @@
 import logging
 import json
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    # python 2.6 or earlier, use backport: pip install ordereddict
-    from ordereddict import OrderedDict
-
 from django.contrib import auth
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
