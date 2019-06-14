@@ -65,7 +65,7 @@ class LTIAuthBackend(ModelBackend):
         try:
             request_is_valid = tool_provider.is_valid_request(request)
         except oauth2.Error:
-            logger.exception(u'error attempting to validate LTI launch %s',
+            logger.exception('error attempting to validate LTI launch %s',
                              postparams)
             request_is_valid = False
 

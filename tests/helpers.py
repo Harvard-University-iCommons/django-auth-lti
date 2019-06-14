@@ -1,6 +1,6 @@
 from django.test import RequestFactory
 from django.contrib.auth import models
-import mock
+from unittest import mock
 
 def build_lti_launch_request(post_data):
     """

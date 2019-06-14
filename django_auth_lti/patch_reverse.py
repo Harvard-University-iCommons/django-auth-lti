@@ -1,10 +1,8 @@
 """
 Monkey-patch django's reverse function to add resource_link_id to all URLs.
 """
-from urlparse import urlparse, urlunparse, parse_qs
-from urllib import urlencode
-
-from django.core import urlresolvers
+from urllib.parse import urlparse, urlunparse, parse_qs
+from urllib.parse import urlencode
 
 from .thread_local import get_current_request
 
@@ -32,7 +30,7 @@ def reverse(*args, **kwargs):
         # was not passed or is False
         parsed = urlparse(url)
         query = parse_qs(parsed.query)
-        if 'resource_link_id' not in query.keys():
+        if 'resource_link_id' not in list(query.keys()):
             query['resource_link_id'] = request.LTI.get('resource_link_id')
             url = urlunparse(
                 (parsed.scheme, parsed.netloc, parsed.path, parsed.params,
@@ -45,22 +43,13 @@ def patch_reverse():
     """
     Monkey-patches the reverse function. Will not patch twice.
     """
-    global django_reverse
-    if urlresolvers.reverse is not reverse:
-        django_reverse = urlresolvers.reverse
-        urlresolvers.reverse = reverse
-
-        # Django 1.10 moves url helper functions like `reverse` into a new urls
-        # module, so we need to patch it as well.  In addition, the
-        # django.shortcuts module now includes `reverse` directly, and the
-        # module appears to be loaded before middleware so we need to
-        # retroactively patch that `reverse` reference as well.
-        try:
-            from django import urls, shortcuts
-            urls.reverse = reverse
-            shortcuts.reverse = reverse
-        except ImportError:
-            pass
+    # the django.shortcuts module includes `reverse` directly, and the
+    # module appears to be loaded before middleware so we need to
+    # retroactively patch that `reverse` reference as well.
+    from django import urls, shortcuts
+    if urls.reverse is not reverse:
+        urls.reverse = reverse
+        shortcuts.reverse = reverse
 
 
 patch_reverse()

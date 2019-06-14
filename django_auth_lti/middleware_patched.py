@@ -6,7 +6,7 @@ from django.contrib import auth
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
-from timer import Timer
+from .timer import Timer
 
 from .thread_local import set_current_request
 
@@ -117,7 +117,7 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
                 # If a custom role key is defined in project, merge into existing role list
                 if hasattr(settings, 'LTI_CUSTOM_ROLE_KEY'):
                     custom_roles = request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, '').split(',')
-                    lti_launch['roles'] += filter(None, custom_roles)  # Filter out any empty roles
+                    lti_launch['roles'] += [_f for _f in custom_roles if _f]  # Filter out any empty roles
 
                 lti_launches = request.session.get('LTI_LAUNCH')
                 if not lti_launches:
@@ -133,13 +133,13 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
 
                 # Limit the number of LTI launches stored in the session
                 max_launches = getattr(settings, 'LTI_AUTH_MAX_LAUNCHES', 10)
-                logger.info("LTI launch count %s [max=%s]" % (len(lti_launches.keys()), max_launches))
-                if len(lti_launches.keys()) >= max_launches:
+                logger.info("LTI launch count %s [max=%s]" % (len(list(lti_launches.keys())), max_launches))
+                if len(list(lti_launches.keys())) >= max_launches:
                     # If the current resource is being re-launched, then we should just invalidate the old launch,
                     # otherwise we should evict the oldest launch (FIFO).
                     remove_resource_link_id = resource_link_id
                     if remove_resource_link_id not in lti_launches:
-                        ordered_launches = sorted(lti_launches.items(), key=lambda item: item[1].get('_order', -1))
+                        ordered_launches = sorted(list(lti_launches.items()), key=lambda item: item[1].get('_order', -1))
                         remove_resource_link_id = ordered_launches[0][0]
                     invalidated_launch = lti_launches.pop(remove_resource_link_id)
                     logger.info("LTI launch invalidated: %s", invalidated_launch)

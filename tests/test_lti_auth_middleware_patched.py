@@ -1,8 +1,8 @@
 import unittest
-from mock import patch
+from unittest.mock import patch
 from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
 from django.test import TestCase, override_settings
-import helpers
+from . import helpers
 
 LTI_AUTH_MAX_LAUNCHES=3
 
@@ -34,7 +34,7 @@ class TestLTIAuthMiddleware(unittest.TestCase):
 
         self.assertIn('LTI_LAUNCH', session)
         self.assertIsInstance(session['LTI_LAUNCH'], dict)
-        self.assertEqual(len(resource_link_ids), len(session['LTI_LAUNCH'].keys()))
+        self.assertEqual(len(resource_link_ids), len(list(session['LTI_LAUNCH'].keys())))
         for resource_link_id in resource_link_ids:
             self.assertIn(resource_link_id, session['LTI_LAUNCH'])
             self.assertEqual(resource_link_id, request.session['LTI_LAUNCH'][resource_link_id]["resource_link_id"])
@@ -65,8 +65,8 @@ class TestLTIAuthMiddleware(unittest.TestCase):
             self.assertIn(resource_link_id, request.session['LTI_LAUNCH'])
             self.assertEqual(launch_count, request.session['LTI_LAUNCH'][resource_link_id]["_order"])
             self.assertEqual(launch_count, request.session['LTI_LAUNCH_COUNT'])
-            self.assertLessEqual(len(request.session['LTI_LAUNCH'].keys()), request.session['LTI_LAUNCH_COUNT'])
-            self.assertLessEqual(len(request.session['LTI_LAUNCH'].keys()), LTI_AUTH_MAX_LAUNCHES)
+            self.assertLessEqual(len(list(request.session['LTI_LAUNCH'].keys())), request.session['LTI_LAUNCH_COUNT'])
+            self.assertLessEqual(len(list(request.session['LTI_LAUNCH'].keys())), LTI_AUTH_MAX_LAUNCHES)
             session = request.session # persist the session across requests
 
         # Check that the oldest launches were invalidated
@@ -94,5 +94,5 @@ class TestLTIAuthMiddleware(unittest.TestCase):
         self.assertIn('LTI_LAUNCH_COUNT', session)
         self.assertIn('LTI_LAUNCH', session)
         self.assertIn(resource_link_id, session['LTI_LAUNCH'])
-        self.assertEqual(1, len(session['LTI_LAUNCH'].keys()))
+        self.assertEqual(1, len(list(session['LTI_LAUNCH'].keys())))
         self.assertLessEqual(total_launches, session['LTI_LAUNCH_COUNT'])
