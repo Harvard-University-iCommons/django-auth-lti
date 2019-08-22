@@ -43,13 +43,23 @@ def patch_reverse():
     """
     Monkey-patches the reverse function. Will not patch twice.
     """
-    # the django.shortcuts module includes `reverse` directly, and the
-    # module appears to be loaded before middleware so we need to
-    # retroactively patch that `reverse` reference as well.
-    from django import urls, shortcuts
+    global django_reverse
+    from django import urls
     if urls.reverse is not reverse:
+        django_reverse = urls.reverse
         urls.reverse = reverse
-        shortcuts.reverse = reverse
 
+        # Django 1.10 moves url helper functions like `reverse` into a new urls
+        # module, so we need to patch it as well.  In addition, the
+        # django.shortcuts module now includes `reverse` directly, and the
+        # module appears to be loaded before middleware so we need to
+        # retroactively patch that `reverse` reference as well.
+        try:
+            from django import urls, shortcuts
+
+            urls.reverse = reverse
+            shortcuts.reverse = reverse
+        except ImportError:
+            pass
 
 patch_reverse()

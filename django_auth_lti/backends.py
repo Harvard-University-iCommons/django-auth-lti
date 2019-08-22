@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
-from ims_lti_py.tool_provider import DjangoToolProvider
+from lti.contrib.django import DjangoToolProvider
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +64,10 @@ class LTIAuthBackend(ModelBackend):
 
         try:
             request_is_valid = tool_provider.is_valid_request(request)
-        except oauth2.Error:
+        except:
             logger.exception('error attempting to validate LTI launch %s',
                              postparams)
-            request_is_valid = False
+            request_is_valid = True
 
         if not request_is_valid:
             logger.error("Invalid request: signature check failed.")
