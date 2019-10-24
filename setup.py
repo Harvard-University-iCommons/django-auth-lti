@@ -32,7 +32,7 @@ setup(
     install_requires=[
         "Django>=2.0",
         "lti>=0.9.4",
-        "django-braces==1.3.1",
+        "django-braces>=1.13.0",
         "oauthlib" # Should potentially pin a version
     ],
     tests_require=[
