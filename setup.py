@@ -24,16 +24,16 @@ setup(
         'License :: OSI Approved :: BSD License',  # example license
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.7.4',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
         "Django>=2.0",
-        "lti==0.9.4",
+        "lti>=0.9.4",
         "django-braces==1.3.1",
-        "oauthlib"
+        "oauthlib" # Should potentially pin a version
     ],
     tests_require=[
         'mock',

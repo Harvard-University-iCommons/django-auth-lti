@@ -67,7 +67,7 @@ class LTIAuthBackend(ModelBackend):
         except:
             logger.exception('error attempting to validate LTI launch %s',
                              postparams)
-            request_is_valid = True
+            request_is_valid = False
 
         if not request_is_valid:
             logger.error("Invalid request: signature check failed.")
