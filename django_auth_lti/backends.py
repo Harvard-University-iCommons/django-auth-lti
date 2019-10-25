@@ -46,7 +46,7 @@ class LTIAuthBackend(ModelBackend):
             raise PermissionDenied
 
         logger.debug('using key/secret %s/%s' % (request_key, secret))
-        tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
+        tool_provider = DjangoToolProvider.from_django_request(secret=secret, request=request)
 
         postparams = request.POST.dict()
 
