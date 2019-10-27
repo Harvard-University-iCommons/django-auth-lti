@@ -6,9 +6,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
+from .request_validator import LTIRequestValidator
 
 logger = logging.getLogger(__name__)
-
 
 
 class LTIAuthBackend(ModelBackend):
@@ -62,7 +62,8 @@ class LTIAuthBackend(ModelBackend):
         logger.info("about to check the signature")
 
         try:
-            request_is_valid = tool_provider.is_valid_request(request)
+            validator = LTIRequestValidator()
+            request_is_valid = tool_provider.is_valid_request(validator)
         except:
             logger.exception('error attempting to validate LTI launch %s',
                              postparams)
@@ -82,8 +83,6 @@ class LTIAuthBackend(ModelBackend):
             logger.info("timestamp looks good")
 
         logger.info("done checking the timestamp")
-
-        # (this is where we should check the nonce)
 
         # if we got this far, the user is good
 
