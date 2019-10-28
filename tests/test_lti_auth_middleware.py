@@ -1,7 +1,7 @@
 import unittest
-from mock import patch
+from unittest.mock import patch
 from django_auth_lti.middleware import LTIAuthMiddleware
-import helpers
+from . import helpers
 
 
 @patch('django_auth_lti.middleware.logger')

@@ -1,15 +1,14 @@
 import logging
 from time import time
 
-import oauth2
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
-from ims_lti_py.tool_provider import DjangoToolProvider
+from lti.contrib.django import DjangoToolProvider
+from .request_validator import LTIRequestValidator
 
 logger = logging.getLogger(__name__)
-
 
 
 class LTIAuthBackend(ModelBackend):
@@ -47,7 +46,7 @@ class LTIAuthBackend(ModelBackend):
             raise PermissionDenied
 
         logger.debug('using key/secret %s/%s' % (request_key, secret))
-        tool_provider = DjangoToolProvider(request_key, secret, request.POST.dict())
+        tool_provider = DjangoToolProvider.from_django_request(secret=secret, request=request)
 
         postparams = request.POST.dict()
 
@@ -63,9 +62,10 @@ class LTIAuthBackend(ModelBackend):
         logger.info("about to check the signature")
 
         try:
-            request_is_valid = tool_provider.is_valid_request(request)
-        except oauth2.Error:
-            logger.exception(u'error attempting to validate LTI launch %s',
+            validator = LTIRequestValidator()
+            request_is_valid = tool_provider.is_valid_request(validator)
+        except:
+            logger.exception('error attempting to validate LTI launch %s',
                              postparams)
             request_is_valid = False
 
@@ -83,8 +83,6 @@ class LTIAuthBackend(ModelBackend):
             logger.info("timestamp looks good")
 
         logger.info("done checking the timestamp")
-
-        # (this is where we should check the nonce)
 
         # if we got this far, the user is good
 
