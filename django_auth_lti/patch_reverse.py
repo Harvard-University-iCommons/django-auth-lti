@@ -6,7 +6,11 @@ from urllib.parse import urlencode
 
 from .thread_local import get_current_request
 
+import logging
+
 django_reverse = None
+
+logger = logging.getLogger(__name__)
 
 
 def reverse(*args, **kwargs):
@@ -28,14 +32,18 @@ def reverse(*args, **kwargs):
     if not exclude_resource_link_id:
         # Append resource_link_id query param if exclude_resource_link_id kwarg
         # was not passed or is False
+        logger.info('URL: {}'.format(url))
         parsed = urlparse(url)
+        logger.info('Pared URL: {}'.format(parsed))
         query = parse_qs(parsed.query)
+        logger.info('Query: {}'.format(query))
         if 'resource_link_id' not in list(query.keys()):
             query['resource_link_id'] = request.LTI.get('resource_link_id')
             url = urlunparse(
                 (parsed.scheme, parsed.netloc, parsed.path, parsed.params,
                  urlencode(query), parsed.fragment)
             )
+            logger.info('New URL: {}'.format(url))
     return url
 
 
