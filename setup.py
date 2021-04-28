@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='2.0.2',
+    version='2.0.3',
     packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
@@ -30,9 +30,9 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
-        "Django>=2.0,<3.0",
-        "lti==0.9.4",
-        "django-braces==1.13.0",
+        "Django>=2.0,<3.3",
+        "lti==0.9.5",
+        "django-braces==1.14.0",
         "oauthlib==3.1.0",
         "requests_oauthlib"
     ],
