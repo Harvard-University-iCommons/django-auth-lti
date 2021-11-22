@@ -8,7 +8,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-auth-lti',
-    version='2.0.3',
+    version='2.0.4',
     packages=['django_auth_lti'],
     include_package_data=True,
     license='TBD License',  # example license
@@ -33,7 +33,7 @@ setup(
         "Django>=2.0,<3.3",
         "lti==0.9.5",
         "django-braces==1.14.0",
-        "oauthlib==3.1.0",
+        "oauthlib==3.1.1",
         "requests_oauthlib"
     ],
     tests_require=[
