@@ -4,6 +4,8 @@ Monkey-patch django's reverse function to add resource_link_id to all URLs.
 from urllib.parse import urlparse, urlunparse, parse_qs
 from urllib.parse import urlencode
 
+from django_auth_lti.conf import get_excluded_paths
+
 from .thread_local import get_current_request
 
 django_reverse = None
@@ -23,9 +25,10 @@ def reverse(*args, **kwargs):
     # Check for custom exclude_resource_link_id kwarg and remove it before
     # passing kwargs to django reverse
     exclude_resource_link_id = kwargs.pop('exclude_resource_link_id', False)
+    excluded_path = getattr(request, "path", "") in get_excluded_paths()
 
     url = django_reverse(*args, **kwargs)
-    if not exclude_resource_link_id:
+    if not exclude_resource_link_id and not excluded_path:
         # Append resource_link_id query param if exclude_resource_link_id kwarg
         # was not passed or is False
         parsed = urlparse(url)

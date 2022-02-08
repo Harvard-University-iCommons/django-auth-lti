@@ -1,9 +1,7 @@
 import logging
-import time
 
 from django.conf import settings
 from django.core.cache import cache
-from django.core.exceptions import ImproperlyConfigured
 from oauthlib.common import to_unicode
 from oauthlib.oauth1 import RequestValidator
 

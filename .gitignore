@@ -5,6 +5,12 @@ dist
 *.egg-info
 *.egg
 .idea
-.tox/
 .eggs/
 .vscode/
+
+.venv
+.tox
+
+# created by `pyenv local`; this allows for customization of
+# versions to test under e.g. `tox`
+.python-version

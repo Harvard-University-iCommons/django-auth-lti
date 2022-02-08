@@ -1,19 +1,17 @@
 import logging
 
-import django_auth_lti.patch_reverse
-
 from django.contrib import auth
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from django.utils.deprecation import MiddlewareMixin
 
+from .conf import get_excluded_paths
 from .timer import Timer
-
 from .thread_local import set_current_request
-
-try:
-    from django.utils.deprecation import MiddlewareMixin
-except ImportError:  # Django < 1.10
-    MiddlewareMixin = object
+# importing here will ensure that django.urls.reverse is patched
+# for other libraries and parts of django, e.g. `url` template tag,
+# when the middleware is loaded
+import django_auth_lti.patch_reverse
 
 
 logger = logging.getLogger(__name__)
@@ -40,6 +38,12 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         logger.debug('inside process_request %s' % request.path)
+
+        # note that `path` can sometimes not exist, e.g. when rendering
+        # django-debug-toolbar templates
+        if getattr(request, "path", "") in get_excluded_paths():
+            set_current_request(request)
+            return
 
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, 'user'):

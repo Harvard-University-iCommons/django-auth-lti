@@ -1,7 +1,9 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, PropertyMock, patch
+
 from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
-from django.test import TestCase, override_settings
+from django.test import override_settings, RequestFactory
+
 from . import helpers
 
 LTI_AUTH_MAX_LAUNCHES=3
@@ -15,6 +17,30 @@ class TestLTIAuthMiddleware(unittest.TestCase):
 
     def build_lti_launch_request(self, post_data):
         return helpers.build_lti_launch_request(post_data)
+
+    @override_settings(DJANGO_AUTH_LTI_EXCLUDE_PATHS=['/skip_lti/'])
+    @patch('django_auth_lti.middleware_patched.auth')
+    def test_exclude_path(self, mock_auth, mock_logger):
+        """
+        Skip LTI session processing if `request.path` is excluded by project settings
+        """
+        request = RequestFactory().get('/skip_lti/')
+        self.mw.process_request(request)
+        self.assertIsNone(getattr(request, 'LTI', None))
+        self.assertEqual(mock_auth.login.call_count, 0)
+
+    @patch('django_auth_lti.middleware_patched.auth')
+    def test_exclude_blank_path(self, mock_auth, mock_logger):
+        """
+        Skip LTI session processing if `request.path` is blank, as is the case with some
+        local requests, like those initiated by the django-debug-toolbar library
+        """
+        mock_request = Mock(request=Mock(path=''))
+        mock_request_LTI_attribute_mock = PropertyMock()
+        type(mock_request).LTI = mock_request_LTI_attribute_mock
+        self.mw.process_request(mock_request)
+        self.assertEqual(mock_request.LTI.call_count, 0)
+        self.assertEqual(mock_auth.login.call_count, 0)
 
     @override_settings(LTI_AUTH_MAX_LAUNCHES=LTI_AUTH_MAX_LAUNCHES)
     @patch('django_auth_lti.middleware_patched.auth')
