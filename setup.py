@@ -34,7 +34,7 @@ setup(
         "Django>=2.0,<3.3",
         "lti==0.9.5",
         "django-braces==1.14.0",
-        "oauthlib==3.1.1",
+        "oauthlib==3.2.2",
         "requests_oauthlib"
     ],
     zip_safe=False,
