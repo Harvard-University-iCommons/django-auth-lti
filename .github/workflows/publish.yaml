@@ -1,0 +1,62 @@
+name: Build and Publish to CodeArtifact
+
+on:
+  push:
+    tags: ["v*"]  
+  pull_request:
+    branches: ["main"] 
+
+  workflow_dispatch: 
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ROLE: arn:aws:iam::482956169056:role/uw-github-actions-code-artifact-publish-role
+  UV_INDEX_PRIVATE_REGISTRY_USERNAME: aws
+
+jobs:
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          role-session-name: GitHubActionsCodeArtifactPublish
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: 'no'
+
+      - name: Get CodeArtifact authorization token
+        run: |
+          echo "UV_INDEX_PRIVATE_REGISTRY_PASSWORD=$(aws codeartifact get-authorization-token \
+            --domain huit-academic-technology \
+            --query authorizationToken --output text)" >> $GITHUB_ENV
+          echo "UV_PUBLISH_PASSWORD=$(aws codeartifact get-authorization-token \
+            --domain huit-academic-technology \
+            --query authorizationToken --output text)" >> $GITHUB_ENV
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev --keyring-provider disabled
+
+      - name: Build package
+        run: uv build --keyring-provider=disabled
+
+      - name: Publish package to CodeArtifact
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: uv publish --index private-registry --keyring-provider disabled
