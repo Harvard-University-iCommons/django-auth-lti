@@ -165,7 +165,7 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
                     "user_id": request.POST.get("user_id"),
                     "user_image": request.POST.get("user_image"),
                 }
-                
+
                 if not lti_launch.get("custom_canvas_course_id") and lti_launch.get("context_id"):
                     lti_launch["custom_canvas_course_id"] = lti_launch["context_id"]
 
