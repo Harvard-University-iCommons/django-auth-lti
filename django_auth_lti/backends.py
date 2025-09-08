@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class LTIAuthBackend(ModelBackend):
-
     """
     By default, the ``authenticate`` method creates ``User`` objects for
     usernames that don't already exist in the database.  Subclasses can disable
@@ -26,13 +25,14 @@ class LTIAuthBackend(ModelBackend):
     unknown_user_prefix = "cuid:"
 
     def authenticate(self, request):
-
         logger.info("about to begin authentication process")
 
-        request_key = request.POST.get('oauth_consumer_key', None)
+        request_key = request.POST.get("oauth_consumer_key", None)
 
         if request_key is None:
-            logger.error("Request doesn't contain an oauth_consumer_key; can't continue.")
+            logger.error(
+                "Request doesn't contain an oauth_consumer_key; can't continue."
+            )
             return None
 
         if not settings.LTI_OAUTH_CREDENTIALS:
@@ -45,28 +45,29 @@ class LTIAuthBackend(ModelBackend):
             logger.error("Could not get a secret for key %s" % request_key)
             raise PermissionDenied
 
-        logger.debug('using key/secret %s/%s' % (request_key, secret))
-        tool_provider = DjangoToolProvider.from_django_request(secret=secret, request=request)
+        logger.debug("using key/secret %s/%s" % (request_key, secret))
+        tool_provider = DjangoToolProvider.from_django_request(
+            secret=secret, request=request
+        )
 
         postparams = request.POST.dict()
 
-        logger.debug('request is secure: %s' % request.is_secure())
+        logger.debug("request is secure: %s" % request.is_secure())
         for key in postparams:
-            logger.debug('POST %s: %s' % (key, postparams.get(key)))
+            logger.debug("POST %s: %s" % (key, postparams.get(key)))
 
-        logger.debug('request abs url is %s' % request.build_absolute_uri())
+        logger.debug("request abs url is %s" % request.build_absolute_uri())
 
         for key in request.META:
-            logger.debug('META %s: %s' % (key, request.META.get(key)))
+            logger.debug("META %s: %s" % (key, request.META.get(key)))
 
         logger.info("about to check the signature")
 
         try:
             validator = LTIRequestValidator()
             request_is_valid = tool_provider.is_valid_request(validator)
-        except:
-            logger.exception('error attempting to validate LTI launch %s',
-                             postparams)
+        except Exception:
+            logger.exception("error attempting to validate LTI launch %s", postparams)
             request_is_valid = False
 
         if not request_is_valid:
@@ -75,10 +76,12 @@ class LTIAuthBackend(ModelBackend):
 
         logger.info("done checking the signature")
 
-        logger.info("about to check the timestamp: %d" % int(tool_provider.oauth_timestamp))
+        logger.info(
+            "about to check the timestamp: %d" % int(tool_provider.oauth_timestamp)
+        )
         if time() - int(tool_provider.oauth_timestamp) > 60 * 60:
             logger.error("OAuth timestamp is too old.")
-            #raise PermissionDenied
+            # raise PermissionDenied
         else:
             logger.info("timestamp looks good")
 
@@ -90,7 +93,8 @@ class LTIAuthBackend(ModelBackend):
 
         # Retrieve username from LTI parameter or default to an overridable function return value
         username = tool_provider.lis_person_sourcedid or self.get_default_username(
-            tool_provider, prefix=self.unknown_user_prefix)
+            tool_provider, prefix=self.unknown_user_prefix
+        )
         username = self.clean_username(username)  # Clean it
 
         email = tool_provider.lis_person_contact_email_primary
@@ -105,22 +109,25 @@ class LTIAuthBackend(ModelBackend):
         # instead we use get_or_create when creating unknown users since it has
         # built-in safeguards for multiple threads.
         if self.create_unknown_user:
-            user, created = UserModel.objects.get_or_create(**{
-                UserModel.USERNAME_FIELD: username,
-            })
+            user, created = UserModel.objects.get_or_create(
+                **{
+                    UserModel.USERNAME_FIELD: username,
+                }
+            )
 
             if created:
-                logger.debug('authenticate created a new user for %s' % username)
+                logger.debug("authenticate created a new user for %s" % username)
             else:
-                logger.debug('authenticate found an existing user for %s' % username)
+                logger.debug("authenticate found an existing user for %s" % username)
 
         else:
             logger.debug(
-                'automatic new user creation is turned OFF! just try to find and existing record')
+                "automatic new user creation is turned OFF! just try to find and existing record"
+            )
             try:
                 user = UserModel.objects.get_by_natural_key(username)
             except UserModel.DoesNotExist:
-                logger.debug('authenticate could not find user %s' % username)
+                logger.debug("authenticate could not find user %s" % username)
                 # should return some kind of error here?
                 pass
 
@@ -139,11 +146,13 @@ class LTIAuthBackend(ModelBackend):
     def clean_username(self, username):
         return username
 
-    def get_default_username(self, tool_provider, prefix=''):
+    def get_default_username(self, tool_provider, prefix=""):
         """
         Return a default username value from tool_provider in case offical
         LTI param lis_person_sourcedid was not present.
         """
         # Default back to user_id lti param
-        uname = tool_provider.get_custom_param('canvas_user_id') or tool_provider.user_id
+        uname = (
+            tool_provider.get_custom_param("canvas_user_id") or tool_provider.user_id
+        )
         return prefix + uname

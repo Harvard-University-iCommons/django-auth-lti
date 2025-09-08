@@ -10,15 +10,15 @@ NONCE_TTL = 3600 * 6
 
 
 class LTIRequestValidator(RequestValidator):
-
     enforce_ssl = True
-    allowed_signature_methods = ['HMAC-SHA1']
+    allowed_signature_methods = ["HMAC-SHA1"]
     timestamp_lifetime = NONCE_TTL
 
-    #TODO: Find out if this is used...
-    dummy_secret = 'secret'
-    dummy_client = (u'dummy_'
-        '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae')
+    # TODO: Find out if this is used...
+    dummy_secret = "secret"
+    dummy_client = (
+        "dummy_2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+    )
 
     def check_client_key(self, key):
         # any non-empty string is OK as a client key
@@ -31,10 +31,18 @@ class LTIRequestValidator(RequestValidator):
     def validate_client_key(self, client_key, request):
         return client_key in settings.LTI_OAUTH_CREDENTIALS
 
-    def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
-                                     request, request_token=None,
-                                     access_token=None):
-        nonce_key = 'lti_nonce:{}-{}-{}-{}'.format(client_key, timestamp, nonce, request_token or access_token)
+    def validate_timestamp_and_nonce(
+        self,
+        client_key,
+        timestamp,
+        nonce,
+        request,
+        request_token=None,
+        access_token=None,
+    ):
+        nonce_key = "lti_nonce:{}-{}-{}-{}".format(
+            client_key, timestamp, nonce, request_token or access_token
+        )
         exists = cache.get(nonce_key)
         if exists:
             logger.debug("nonce already exists: %s", nonce)

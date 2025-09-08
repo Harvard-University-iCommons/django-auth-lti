@@ -4,7 +4,9 @@ from django.urls import reverse_lazy
 from django_auth_lti.verification import is_allowed
 
 
-def lti_role_required(allowed_roles, redirect_url=reverse_lazy('not_authorized'), raise_exception=False):
+def lti_role_required(
+    allowed_roles, redirect_url=reverse_lazy("not_authorized"), raise_exception=False
+):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped_view(request, *args, **kwargs):
@@ -12,5 +14,7 @@ def lti_role_required(allowed_roles, redirect_url=reverse_lazy('not_authorized')
                 return view_func(request, *args, **kwargs)
 
             return redirect(redirect_url)
+
         return _wrapped_view
+
     return decorator
