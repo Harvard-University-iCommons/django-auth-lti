@@ -1,8 +1,10 @@
 import unittest
 from unittest import mock
 from unittest.mock import patch
-from django.test import RequestFactory
+
 from django.contrib.auth import get_user_model
+from django.test import RequestFactory
+
 from django_auth_lti import middleware
 from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
 

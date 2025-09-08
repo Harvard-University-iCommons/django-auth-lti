@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import patch
+
 from django_auth_lti.middleware import LTIAuthMiddleware
+
 from . import helpers
 
 
@@ -31,9 +33,7 @@ class TestLTIAuthMiddleware(unittest.TestCase):
             LTI_CUSTOM_ROLE_KEY="test_custom_role_key",
         ):
             self.mw.process_request(request)
-        self.assertEqual(
-            request.LTI.get("roles"), ["RoleOne", "RoleTwo", "My", "Custom", "Roles"]
-        )
+        self.assertEqual(request.LTI.get("roles"), ["RoleOne", "RoleTwo", "My", "Custom", "Roles"])
 
     @patch("django_auth_lti.middleware.auth")
     def test_roles_merge_with_empty_custom_roles(self, mock_auth, mock_logger):

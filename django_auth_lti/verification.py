@@ -1,4 +1,4 @@
-from django.core.exceptions import PermissionDenied, ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 
 
 def is_allowed(request, allowed_roles, raise_exception):

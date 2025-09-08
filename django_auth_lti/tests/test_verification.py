@@ -1,16 +1,16 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
-from django_auth_lti.verification import is_allowed
+
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+
+from django_auth_lti.verification import is_allowed
 
 
 class TestVerification(TestCase):
     def test_is_allowed_config_failure(self):
         request = MagicMock(LTI={})
         allowed_roles = ["admin", "student"]
-        self.assertRaises(
-            ImproperlyConfigured, is_allowed, request, allowed_roles, False
-        )
+        self.assertRaises(ImproperlyConfigured, is_allowed, request, allowed_roles, False)
 
     def test_is_allowed_success(self):
         request = MagicMock(LTI={"roles": ["admin"]})

@@ -16,9 +16,7 @@ class LTIRequestValidator(RequestValidator):
 
     # TODO: Find out if this is used...
     dummy_secret = "secret"
-    dummy_client = (
-        "dummy_2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
-    )
+    dummy_client = "dummy_2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
 
     def check_client_key(self, key):
         # any non-empty string is OK as a client key
@@ -40,9 +38,7 @@ class LTIRequestValidator(RequestValidator):
         request_token=None,
         access_token=None,
     ):
-        nonce_key = "lti_nonce:{}-{}-{}-{}".format(
-            client_key, timestamp, nonce, request_token or access_token
-        )
+        nonce_key = f"lti_nonce:{client_key}-{timestamp}-{nonce}-{request_token or access_token}"
         exists = cache.get(nonce_key)
         if exists:
             logger.debug("nonce already exists: %s", nonce)

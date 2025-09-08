@@ -1,6 +1,7 @@
-from django.test import RequestFactory
-from django.contrib.auth import models
 from unittest import mock
+
+from django.contrib.auth import models
+from django.test import RequestFactory
 
 
 def build_lti_launch_request(post_data, url="/fake/lti/launch"):

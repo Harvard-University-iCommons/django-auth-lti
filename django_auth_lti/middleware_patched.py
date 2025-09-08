@@ -1,12 +1,17 @@
 import logging
 
+import django.urls
 from django.contrib import auth
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import reverse as django_reverse
 from django.utils.deprecation import MiddlewareMixin
 
+from django_auth_lti.thread_local import get_current_request
+
 from .conf import get_excluded_paths
-from .timer import Timer
 from .thread_local import set_current_request
+from .timer import Timer
+
 # importing here will ensure that django.urls.reverse is patched
 # for other libraries and parts of django, e.g. `url` template tag,
 # when the middleware is loaded
@@ -68,11 +73,7 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
 
             # If a user is already authenticated on the request, trust it.
             # Otherwise fall back to auth.authenticate/login.
-            user = (
-                request.user
-                if getattr(request.user, "is_authenticated", False)
-                else None
-            )
+            user = request.user if getattr(request.user, "is_authenticated", False) else None
             if user is None:
                 logger.debug("authenticating the user via LTI params")
                 with Timer() as t:
@@ -98,27 +99,17 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
                     "context_label": request.POST.get("context_label"),
                     "context_title": request.POST.get("context_title"),
                     "context_type": request.POST.get("context_type"),
-                    "custom_brand_config_js": request.POST.get(
-                        "custom_brand_config_js"
-                    ),
-                    "custom_canvas_account_id": request.POST.get(
-                        "custom_canvas_account_id"
-                    ),
+                    "custom_brand_config_js": request.POST.get("custom_brand_config_js"),
+                    "custom_canvas_account_id": request.POST.get("custom_canvas_account_id"),
                     "custom_canvas_account_sis_id": request.POST.get(
                         "custom_canvas_account_sis_id"
                     ),
-                    "custom_canvas_api_domain": request.POST.get(
-                        "custom_canvas_api_domain"
-                    ),
-                    "custom_canvas_course_id": request.POST.get(
-                        "custom_canvas_course_id"
-                    ),
+                    "custom_canvas_api_domain": request.POST.get("custom_canvas_api_domain"),
+                    "custom_canvas_course_id": request.POST.get("custom_canvas_course_id"),
                     "custom_canvas_course_sectionsissourceids": request.POST.get(
                         "custom_canvas_course_sectionsissourceids", ""
                     ).split(","),
-                    "custom_canvas_css_common": request.POST.get(
-                        "custom_canvas_css_common"
-                    ),
+                    "custom_canvas_css_common": request.POST.get("custom_canvas_css_common"),
                     "custom_canvas_enrollment_state": request.POST.get(
                         "custom_canvas_enrollment_state"
                     ),
@@ -128,50 +119,32 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
                     "custom_canvas_person_email_sis": request.POST.get(
                         "custom_canvas_person_email_sis"
                     ),
-                    "custom_canvas_term_name": request.POST.get(
-                        "custom_canvas_term_name"
-                    ),
+                    "custom_canvas_term_name": request.POST.get("custom_canvas_term_name"),
                     "custom_canvas_user_id": request.POST.get("custom_canvas_user_id"),
-                    "custom_canvas_user_login_id": request.POST.get(
-                        "custom_canvas_user_login_id"
-                    ),
-                    "launch_presentation_css_url": request.POST.get(
-                        "launch_presentation_css_url"
-                    ),
+                    "custom_canvas_user_login_id": request.POST.get("custom_canvas_user_login_id"),
+                    "launch_presentation_css_url": request.POST.get("launch_presentation_css_url"),
                     "launch_presentation_document_target": request.POST.get(
                         "launch_presentation_document_target"
                     ),
-                    "launch_presentation_height": request.POST.get(
-                        "launch_presentation_height"
-                    ),
-                    "launch_presentation_locale": request.POST.get(
-                        "launch_presentation_locale"
-                    ),
+                    "launch_presentation_height": request.POST.get("launch_presentation_height"),
+                    "launch_presentation_locale": request.POST.get("launch_presentation_locale"),
                     "launch_presentation_return_url": request.POST.get(
                         "launch_presentation_return_url"
                     ),
-                    "launch_presentation_width": request.POST.get(
-                        "launch_presentation_width"
-                    ),
+                    "launch_presentation_width": request.POST.get("launch_presentation_width"),
                     "lis_course_offering_sourcedid": request.POST.get(
                         "lis_course_offering_sourcedid"
                     ),
-                    "lis_outcome_service_url": request.POST.get(
-                        "lis_outcome_service_url"
-                    ),
+                    "lis_outcome_service_url": request.POST.get("lis_outcome_service_url"),
                     "lis_person_contact_email_primary": request.POST.get(
                         "lis_person_contact_email_primary"
                     ),
-                    "lis_person_name_family": request.POST.get(
-                        "lis_person_name_family"
-                    ),
+                    "lis_person_name_family": request.POST.get("lis_person_name_family"),
                     "lis_person_name_full": request.POST.get("lis_person_name_full"),
                     "lis_person_name_given": request.POST.get("lis_person_name_given"),
                     "lis_person_sourcedid": request.POST.get("lis_person_sourcedid"),
                     "lti_message_type": request.POST.get("lti_message_type"),
-                    "resource_link_description": request.POST.get(
-                        "resource_link_description"
-                    ),
+                    "resource_link_description": request.POST.get("resource_link_description"),
                     "resource_link_id": resource_link_id,
                     "resource_link_title": request.POST.get("resource_link_title"),
                     "roles": request.POST.get("roles", "").split(","),
@@ -179,33 +152,23 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
                     "tool_consumer_info_product_family_code": request.POST.get(
                         "tool_consumer_info_product_family_code"
                     ),
-                    "tool_consumer_info_version": request.POST.get(
-                        "tool_consumer_info_version"
-                    ),
+                    "tool_consumer_info_version": request.POST.get("tool_consumer_info_version"),
                     "tool_consumer_instance_contact_email": request.POST.get(
                         "tool_consumer_instance_contact_email"
                     ),
                     "tool_consumer_instance_description": request.POST.get(
                         "tool_consumer_instance_description"
                     ),
-                    "tool_consumer_instance_guid": request.POST.get(
-                        "tool_consumer_instance_guid"
-                    ),
-                    "tool_consumer_instance_name": request.POST.get(
-                        "tool_consumer_instance_name"
-                    ),
-                    "tool_consumer_instance_url": request.POST.get(
-                        "tool_consumer_instance_url"
-                    ),
+                    "tool_consumer_instance_guid": request.POST.get("tool_consumer_instance_guid"),
+                    "tool_consumer_instance_name": request.POST.get("tool_consumer_instance_name"),
+                    "tool_consumer_instance_url": request.POST.get("tool_consumer_instance_url"),
                     "user_id": request.POST.get("user_id"),
                     "user_image": request.POST.get("user_image"),
                 }
 
                 # Merge custom roles if configured
                 if hasattr(_mw.settings, "LTI_CUSTOM_ROLE_KEY"):
-                    custom_roles = request.POST.get(
-                        _mw.settings.LTI_CUSTOM_ROLE_KEY, ""
-                    ).split(",")
+                    custom_roles = request.POST.get(_mw.settings.LTI_CUSTOM_ROLE_KEY, "").split(",")
                     lti_launch["roles"] += [r for r in custom_roles if r]
 
                 # Use dict-like session (works for tests where request.session is just `{}`)
@@ -254,9 +217,7 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
         set_current_request(request)
 
         if not request.LTI:
-            logger.warning(
-                "Could not find LTI launch for resource_link_id %s", resource_link_id
-            )
+            logger.warning("Could not find LTI launch for resource_link_id %s", resource_link_id)
 
     def clean_username(self, username, request):
         """
@@ -266,11 +227,36 @@ class MultiLTILaunchAuthMiddleware(MiddlewareMixin):
         backend_str = request.session[auth.BACKEND_SESSION_KEY]
         backend = auth.load_backend(backend_str)
         try:
-            logger.debug(
-                "calling the backend %s clean_username with %s" % (backend, username)
-            )
+            logger.debug("calling the backend %s clean_username with %s", backend, username)
             username = backend.clean_username(username)
-            logger.debug("cleaned username is %s" % username)
+            logger.debug("cleaned username is %s", username)
         except AttributeError:  # Backend has no clean_username method.
             pass
         return username
+
+
+def lti_reverse(
+    viewname,
+    urlconf=None,
+    args=None,
+    kwargs=None,
+    current_app=None,
+    exclude_resource_link_id=False,
+):
+    """Wrapper around django.urls.reverse that appends resource_link_id if available."""
+    url = django_reverse(
+        viewname, urlconf=urlconf, args=args, kwargs=kwargs, current_app=current_app
+    )
+
+    if exclude_resource_link_id:
+        return url
+
+    request = get_current_request()
+    if request and hasattr(request, "LTI"):
+        resource_link_id = request.LTI.get("resource_link_id")
+        if resource_link_id:
+            separator = "&" if "?" in url else "?"
+            url = f"{url}{separator}resource_link_id={resource_link_id}"
+    return url
+
+django.urls.reverse = lti_reverse

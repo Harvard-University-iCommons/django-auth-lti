@@ -1,8 +1,8 @@
 import logging
 
+from django.conf import settings
 from django.contrib import auth
 from django.core.exceptions import ImproperlyConfigured
-from django.conf import settings
 
 from .timer import Timer
 
@@ -33,7 +33,7 @@ class LTIAuthMiddleware(MiddlewareMixin):
         self.get_response = get_response
 
     def process_request(self, request):
-        logger.debug("inside process_request %s" % request.path)
+        logger.debug("inside process_request %s", request.path)
         # AuthenticationMiddleware is required so that request.user exists.
         if not hasattr(request, "user"):
             logger.debug("improperly configured: requeset has no user attr")
@@ -49,14 +49,12 @@ class LTIAuthMiddleware(MiddlewareMixin):
             request.method == "POST"
             and request.POST.get("lti_message_type") == "basic-lti-launch-request"
         ):
-            logger.debug(
-                "received a basic-lti-launch-request - authenticating the user"
-            )
+            logger.debug("received a basic-lti-launch-request - authenticating the user")
 
             # authenticate and log the user in
             with Timer() as t:
                 user = auth.authenticate(request=request)
-            logger.debug("authenticate() took %s s" % t.secs)
+            logger.debug("authenticate() took %s s", t.secs)
 
             if user is not None:
                 # User is valid.  Set request.user and persist user in the session
@@ -67,34 +65,24 @@ class LTIAuthMiddleware(MiddlewareMixin):
                 with Timer() as t:
                     auth.login(request, user)
 
-                logger.debug("login() took %s s" % t.secs)
+                logger.debug("login() took %s s", t.secs)
 
                 lti_launch = {
                     "context_id": request.POST.get("context_id", None),
                     "context_label": request.POST.get("context_label", None),
                     "context_title": request.POST.get("context_title", None),
                     "context_type": request.POST.get("context_type", None),
-                    "custom_brand_config_js": request.POST.get(
-                        "custom_brand_config_js", None
-                    ),
-                    "custom_canvas_account_id": request.POST.get(
-                        "custom_canvas_account_id", None
-                    ),
+                    "custom_brand_config_js": request.POST.get("custom_brand_config_js", None),
+                    "custom_canvas_account_id": request.POST.get("custom_canvas_account_id", None),
                     "custom_canvas_account_sis_id": request.POST.get(
                         "custom_canvas_account_sis_id", None
                     ),
-                    "custom_canvas_api_domain": request.POST.get(
-                        "custom_canvas_api_domain", None
-                    ),
-                    "custom_canvas_course_id": request.POST.get(
-                        "custom_canvas_course_id", None
-                    ),
+                    "custom_canvas_api_domain": request.POST.get("custom_canvas_api_domain", None),
+                    "custom_canvas_course_id": request.POST.get("custom_canvas_course_id", None),
                     "custom_canvas_course_sectionsissourceids": request.POST.get(
                         "custom_canvas_course_sectionsissourceids", ""
                     ).split(","),
-                    "custom_canvas_css_common": request.POST.get(
-                        "custom_canvas_css_common", None
-                    ),
+                    "custom_canvas_css_common": request.POST.get("custom_canvas_css_common", None),
                     "custom_canvas_enrollment_state": request.POST.get(
                         "custom_canvas_enrollment_state", None
                     ),
@@ -104,12 +92,8 @@ class LTIAuthMiddleware(MiddlewareMixin):
                     "custom_canvas_person_email_sis": request.POST.get(
                         "custom_canvas_person_email_sis"
                     ),
-                    "custom_canvas_term_name": request.POST.get(
-                        "custom_canvas_term_name"
-                    ),
-                    "custom_canvas_user_id": request.POST.get(
-                        "custom_canvas_user_id", None
-                    ),
+                    "custom_canvas_term_name": request.POST.get("custom_canvas_term_name"),
+                    "custom_canvas_user_id": request.POST.get("custom_canvas_user_id", None),
                     "custom_canvas_user_login_id": request.POST.get(
                         "custom_canvas_user_login_id", None
                     ),
@@ -134,36 +118,22 @@ class LTIAuthMiddleware(MiddlewareMixin):
                     "lis_course_offering_sourcedid": request.POST.get(
                         "lis_course_offering_sourcedid", None
                     ),
-                    "lis_outcome_service_url": request.POST.get(
-                        "lis_outcome_service_url", None
-                    ),
+                    "lis_outcome_service_url": request.POST.get("lis_outcome_service_url", None),
                     "lis_person_contact_email_primary": request.POST.get(
                         "lis_person_contact_email_primary", None
                     ),
-                    "lis_person_name_family": request.POST.get(
-                        "lis_person_name_family", None
-                    ),
-                    "lis_person_name_full": request.POST.get(
-                        "lis_person_name_full", None
-                    ),
-                    "lis_person_name_given": request.POST.get(
-                        "lis_person_name_given", None
-                    ),
-                    "lis_person_sourcedid": request.POST.get(
-                        "lis_person_sourcedid", None
-                    ),
+                    "lis_person_name_family": request.POST.get("lis_person_name_family", None),
+                    "lis_person_name_full": request.POST.get("lis_person_name_full", None),
+                    "lis_person_name_given": request.POST.get("lis_person_name_given", None),
+                    "lis_person_sourcedid": request.POST.get("lis_person_sourcedid", None),
                     "lti_message_type": request.POST.get("lti_message_type", None),
                     "resource_link_description": request.POST.get(
                         "resource_link_description", None
                     ),
                     "resource_link_id": request.POST.get("resource_link_id", None),
-                    "resource_link_title": request.POST.get(
-                        "resource_link_title", None
-                    ),
+                    "resource_link_title": request.POST.get("resource_link_title", None),
                     "roles": request.POST.get("roles", "").split(","),
-                    "selection_directive": request.POST.get(
-                        "selection_directive", None
-                    ),
+                    "selection_directive": request.POST.get("selection_directive", None),
                     "tool_consumer_info_product_family_code": request.POST.get(
                         "tool_consumer_info_product_family_code", None
                     ),
@@ -190,9 +160,7 @@ class LTIAuthMiddleware(MiddlewareMixin):
                 }
                 # If a custom role key is defined in project, merge into existing role list
                 if hasattr(settings, "LTI_CUSTOM_ROLE_KEY"):
-                    custom_roles = request.POST.get(
-                        settings.LTI_CUSTOM_ROLE_KEY, ""
-                    ).split(",")
+                    custom_roles = request.POST.get(settings.LTI_CUSTOM_ROLE_KEY, "").split(",")
                     lti_launch["roles"] += [
                         _f for _f in custom_roles if _f
                     ]  # Filter out any empty roles
@@ -208,23 +176,18 @@ class LTIAuthMiddleware(MiddlewareMixin):
         # Other functions in django-auth-lti expect there to be an LTI attribute on the request object
         # This enables backwards compatibility with consumers of this package who still want to use this
         # single launch version of LTIAuthMiddleware
-        setattr(request, "LTI", request.session.get("LTI_LAUNCH", {}))
+        request.LTI = request.session.get("LTI_LAUNCH", {})
         if not request.LTI:
             logger.warning("Could not find LTI launch parameters")
 
     def clean_username(self, username, request):
-        """
-        Allows the backend to clean the username, if the backend defines a
-        clean_username method.
-        """
+        """Allows the backend to clean the username, if the backend defines a clean_username method."""
         backend_str = request.session[auth.BACKEND_SESSION_KEY]
         backend = auth.load_backend(backend_str)
         try:
-            logger.debug(
-                "calling the backend %s clean_username with %s" % (backend, username)
-            )
+            logger.debug(f"calling the backend {backend} clean_username with {username}")
             username = backend.clean_username(username)
-            logger.debug("cleaned username is %s" % username)
-        except AttributeError:  # Backend has no clean_username method.
+            logger.debug(f"cleaned username is {username}")
+        except AttributeError:
             pass
         return username

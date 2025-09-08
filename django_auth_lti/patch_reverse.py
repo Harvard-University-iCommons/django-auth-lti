@@ -2,11 +2,12 @@
 Monkey-patch django's reverse function to add resource_link_id to all URLs.
 """
 
-from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
+import django.shortcuts
+import django.urls
 
 from django_auth_lti.conf import get_excluded_paths
-import django.urls
-import django.shortcuts
 
 from .thread_local import get_current_request
 

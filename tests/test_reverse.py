@@ -1,11 +1,12 @@
 from unittest import TestCase
-from unittest.mock import patch, Mock
-from django.test import override_settings, RequestFactory
+from unittest.mock import Mock, patch
 
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 
-from . import helpers
 from django_auth_lti.middleware_patched import MultiLTILaunchAuthMiddleware
+
+from . import helpers
 
 
 class TestReverse(TestCase):
@@ -24,9 +25,7 @@ class TestReverse(TestCase):
         (`django.urls.reverse` should be patched automatically by importing MultiLTILaunchAuthMiddleware)
         """
         mock_auth.authenticate.return_value = Mock()
-        request = self.build_lti_launch_request(
-            {"resource_link_id": "abc123"}, url="/lti_launch/"
-        )
+        request = self.build_lti_launch_request({"resource_link_id": "abc123"}, url="/lti_launch/")
         self.mw.process_request(request)
         request.LTI = {"resource_link_id": "abc123"}
         url = reverse("lti_launch")
@@ -49,17 +48,13 @@ class TestReverse(TestCase):
 
     @patch("django_auth_lti.middleware.logger")
     @patch("django_auth_lti.middleware_patched.auth")
-    def test_patched_reverse_exclude_resource_link_id_param(
-        self, mock_auth, mock_logger
-    ):
+    def test_patched_reverse_exclude_resource_link_id_param(self, mock_auth, mock_logger):
         """
         `django.urls.reverse()` should not check the LTI session for the `resource_link_id` if the `exclude_resource_link_id` is set to `True` when called
         (`django.urls.reverse` should be patched automatically by importing MultiLTILaunchAuthMiddleware)
         """
         mock_auth.authenticate.return_value = Mock()
-        request = self.build_lti_launch_request(
-            {"resource_link_id": "abc123"}, url="/lti_launch/"
-        )
+        request = self.build_lti_launch_request({"resource_link_id": "abc123"}, url="/lti_launch/")
         self.mw.process_request(request)
         request.LTI = {"resource_link_id": "abc123"}
 

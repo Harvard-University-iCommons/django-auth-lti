@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.core.exceptions import PermissionDenied
 from lti.contrib.django import DjangoToolProvider
+
 from .request_validator import LTIRequestValidator
 
 logger = logging.getLogger(__name__)
@@ -30,9 +31,7 @@ class LTIAuthBackend(ModelBackend):
         request_key = request.POST.get("oauth_consumer_key", None)
 
         if request_key is None:
-            logger.error(
-                "Request doesn't contain an oauth_consumer_key; can't continue."
-            )
+            logger.error("Request doesn't contain an oauth_consumer_key; can't continue.")
             return None
 
         if not settings.LTI_OAUTH_CREDENTIALS:
@@ -42,24 +41,22 @@ class LTIAuthBackend(ModelBackend):
         secret = settings.LTI_OAUTH_CREDENTIALS.get(request_key)
 
         if secret is None:
-            logger.error("Could not get a secret for key %s" % request_key)
+            logger.error("Could not get a secret for key %s", request_key)
             raise PermissionDenied
 
-        logger.debug("using key/secret %s/%s" % (request_key, secret))
-        tool_provider = DjangoToolProvider.from_django_request(
-            secret=secret, request=request
-        )
+        logger.debug("using key/secret %s/%s", request_key, secret)
+        tool_provider = DjangoToolProvider.from_django_request(secret=secret, request=request)
 
         postparams = request.POST.dict()
 
-        logger.debug("request is secure: %s" % request.is_secure())
+        logger.debug("request is secure: %s", request.is_secure())
         for key in postparams:
-            logger.debug("POST %s: %s" % (key, postparams.get(key)))
+            logger.debug("POST %s: %s", key, postparams.get(key))
 
-        logger.debug("request abs url is %s" % request.build_absolute_uri())
+        logger.debug("request abs url is %s", request.build_absolute_uri())
 
         for key in request.META:
-            logger.debug("META %s: %s" % (key, request.META.get(key)))
+            logger.debug("META %s: %s", key, request.META.get(key))
 
         logger.info("about to check the signature")
 
@@ -76,9 +73,7 @@ class LTIAuthBackend(ModelBackend):
 
         logger.info("done checking the signature")
 
-        logger.info(
-            "about to check the timestamp: %d" % int(tool_provider.oauth_timestamp)
-        )
+        logger.info("about to check the timestamp: %d", int(tool_provider.oauth_timestamp))
         if time() - int(tool_provider.oauth_timestamp) > 60 * 60:
             logger.error("OAuth timestamp is too old.")
             # raise PermissionDenied
@@ -101,7 +96,7 @@ class LTIAuthBackend(ModelBackend):
         first_name = tool_provider.lis_person_name_given
         last_name = tool_provider.lis_person_name_family
 
-        logger.info("We have a valid username: %s" % username)
+        logger.info("We have a valid username: %s", username)
 
         UserModel = get_user_model()
 
@@ -116,9 +111,9 @@ class LTIAuthBackend(ModelBackend):
             )
 
             if created:
-                logger.debug("authenticate created a new user for %s" % username)
+                logger.debug("authenticate created a new user for %s", username)
             else:
-                logger.debug("authenticate found an existing user for %s" % username)
+                logger.debug("authenticate found an existing user for %s", username)
 
         else:
             logger.debug(
@@ -127,7 +122,7 @@ class LTIAuthBackend(ModelBackend):
             try:
                 user = UserModel.objects.get_by_natural_key(username)
             except UserModel.DoesNotExist:
-                logger.debug("authenticate could not find user %s" % username)
+                logger.debug("authenticate could not find user %s", username)
                 # should return some kind of error here?
                 pass
 
@@ -152,7 +147,5 @@ class LTIAuthBackend(ModelBackend):
         LTI param lis_person_sourcedid was not present.
         """
         # Default back to user_id lti param
-        uname = (
-            tool_provider.get_custom_param("canvas_user_id") or tool_provider.user_id
-        )
+        uname = tool_provider.get_custom_param("canvas_user_id") or tool_provider.user_id
         return prefix + uname

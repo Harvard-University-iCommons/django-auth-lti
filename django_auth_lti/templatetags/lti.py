@@ -1,11 +1,10 @@
-import logging
 import json
+import logging
 
 from django import template
 from django.utils.html import format_html
 
 from django_auth_lti.thread_local import get_current_request
-
 
 logger = logging.getLogger(__name__)
 register = template.Library()
