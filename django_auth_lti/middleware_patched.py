@@ -259,4 +259,5 @@ def lti_reverse(
             url = f"{url}{separator}resource_link_id={resource_link_id}"
     return url
 
+
 django.urls.reverse = lti_reverse
