@@ -1,24 +1,30 @@
 name: Quality Checks
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        django-version: ['3.2', '3.1', '3.0', '2.2', '2.1', '2.0']
-        python-version: ['3.7', '3.8', '3.9']
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        django-version: ["4.2", "5.0"]
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: 'setup.py'
-      - name: Install Python Dependencies
+          cache: "pip"
+          cache-dependency-path: "pyproject.toml"
+
+      - name: Install Python dependencies
         run: |
-            pip install --upgrade pip wheel
-            pip install Django~=${{ matrix.django-version }}
-            python setup.py install
+          pip install --upgrade pip wheel
+          pip install "Django==${{ matrix.django-version }}"
+          pip install -e .
+
       - name: Run tests
-        run: python run_tests.py
+        run: |
+          pytest django_auth_lti/tests -vv
