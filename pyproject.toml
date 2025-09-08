@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "build"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-auth-lti"
+version = "2.2.0"
+description = "Django authentication middleware and backend for LTI consumers."
+readme = "README.md"
+license = { text = "BSD-3-Clause" }
+authors = [
+    { name="HUIT AT-UW", email="academictechnology@harvard.edu"}
+]
+
+requires-python = ">=3.9"
+
+dependencies = [
+  "Django>=4.2,<6.0",
+  "lti==0.9.5",
+  "django-braces==1.14.0",
+  "oauthlib==3.1.1",
+  "requests_oauthlib",
+]
+
+classifiers = [
+  "Environment :: Web Environment",
+  "Framework :: Django",
+  "Framework :: Django :: 4.2",
+  "Framework :: Django :: 5.0",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
+
+[project.urls]
+Homepage = "https://github.com/Harvard-University-iCommons/django-auth-lti"
+
+[tool.setuptools]
+packages = ["django_auth_lti"]
+include-package-data = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.test_settings"
+django_find_project = "false"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
